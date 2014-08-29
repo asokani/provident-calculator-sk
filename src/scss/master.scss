@@ -14,12 +14,12 @@
 ///////////////////////////////////////////////////////////
 
 /** Bourbon Bitters Scaffold Styles **/
-@import "../../bower_components/bitters/app/assets/stylesheets/bitters";
-@import "bitters/variables"; // Override Bitters default variables
+// @import "../../bower_components/bitters/app/assets/stylesheets/bitters";
+// @import "bitters/variables"; // Override Bitters default variables
 
 /** Twitter Bootstrap **/
-// @import "bootstrap/variables"; // Override Bootstrap default variables
-// @import "../../bower_components/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap";
+@import "bootstrap/variables"; // Override Bootstrap default variables
+@import "../../bower_components/bootstrap-sass-official/vendor/assets/stylesheets/bootstrap";
 
 /** Font Awesome **/
 @import "font-awesome/font-awesome";
@@ -33,8 +33,6 @@
 	-------------------------------------------------------- */
 
 body {
-	background: $base-body-color;
-	color: $base-font-color;
-	font-family: $sans-serif;
-	text-rendering: optimizeLegibility;
+	background: white;
+	color: black;
 }
