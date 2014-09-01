@@ -58,6 +58,9 @@ var paths = {
 						],
 	scripts_compile:	[
 							bower_folder + '/jquery/dist/jquery.js',
+							bower_folder + '/jqueryui/ui/jquery-ui.js',
+							bower_folder + '/ember/ember.js',
+							bower_folder + '/handlebars/handlebars.js',
 							bootstrap_js_path + 'affix.js',
 							bootstrap_js_path + 'alert.js',
 							bootstrap_js_path + 'button.js',
