@@ -1,59 +1,95 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="utf-8">
-		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-		<title></title>
+    <title></title>
 
-		<meta name="description" content="My website.">
-		<meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="My website.">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 
-		<!-- Stylesheets-->
-		<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,300,700,600,400' rel='stylesheet' type='text/css'>
-		<link href='https://code.jquery.com/ui/1.10.4/themes/redmond/jquery-ui.css' rel='stylesheet' type='text/css'>
-		<link rel="stylesheet" href="css/master.css">
-	</head>
-	<body>
+    <!-- Stylesheets-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,300,700,600,400' rel='stylesheet' type='text/css'>
+    <link href='https://code.jquery.com/ui/1.10.4/themes/redmond/jquery-ui.css' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/master.css">
+</head>
+<body>
 
-		<div class="container" style="padding: 20px 0 0;">
-            <h1 id="forms" class="page-header">Forms</h1>
-			<div class="row">
+<script type="text/x-handlebars" data-template-name="calculator">
+    <div class="row">
 
-				<div class="col-md-6">
-                    <div id="slider" style="margin: 13px 0 0;"></div>
-				</div>
-                <div class="col-md-1 col-md-offset-1">
-                    <div class="form-group">
-                        <input type="price" class="form-control" id="">
-                    </div>
-                </div>
+        <div class="col-md-9">
+            <div id="slider" style="margin: 13px 0 0;"></div>
+        </div>
+        <div class="col-md-2 col-md-offset-1">
+            <div class="form-group">
+                {{input type="text" class="form-control" value=loanValue}}
+            </div>
+        </div>
+    </div>
+    <div class="row" >
+        <div class="col-md-12" style="margin-bottom: 25px;">
+            {{input type="checkbox" checked=isWithService}} se službou obchodního zástupce
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="panel panel-default">
+                <table class="table">
+                    <tr>
+                        <th>Doba splácení</th>
+                        <th>Týdenní splátka</th>
+                        <th>Celkové náklady</th>
+                        <th>RPMN</th>
+                        <th>Služba zabezpeční splátek</th>
+                        <th>Celkem zaplatit</th>
+                    </tr>
+                    {{#each resultData}}
+                    <tr>
+                        <td>{{weeks}}</td>
+                        <td>{{weekPay}}</td>
+                        <td>{{totalCost}}</td>
+                        <td>{{rpmn}}</td>
+                        <td>{{payService}}</td>
+                        <td>{{totalPay}}</td>
+                    </tr>
+                    {{/each}}
+                </table>
+            </div>
+        </div>
+    </div>
 
-			</div>
-            <h1 id="forms" class="page-header">Forms</h1>
-		</div>
+</script>
 
-		<!-- Scripts -->
-		<!-- htmlbuild:js -->
-		<script src="scripts/full/jquery.js"></script>
-		<script src="scripts/full/jquery-ui.js"></script>
-        <script src="scripts/full/handlebars.js"></script>
-		<script src="scripts/full/ember.js"></script>
-		<script src="scripts/full/affix.js"></script>
-		<script src="scripts/full/alert.js"></script>
-		<script src="scripts/full/button.js"></script>
-		<script src="scripts/full/carousel.js"></script>
-		<script src="scripts/full/collapse.js"></script>
-		<script src="scripts/full/dropdown.js"></script>
-		<script src="scripts/full/tab.js"></script>
-		<script src="scripts/full/transition.js"></script>
-		<script src="scripts/full/scrollspy.js"></script>
-		<script src="scripts/full/modal.js"></script>
-		<script src="scripts/full/tooltip.js"></script>
-		<script src="scripts/full/popover.js"></script>
-		<script src="scripts/full/main.js"></script>
-		<!-- endbuild -->
-	</body>
+<div class="container" style="padding: 20px 0 0;">
+    <h1 id="forms" class="page-header">Forms</h1>
+    <div id="calculator"></div>
+
+    <h1 id="forms" class="page-header">Forms</h1>
+</div>
+
+<!-- Scripts -->
+<!-- htmlbuild:js -->
+<script src="scripts/full/jquery.js"></script>
+<script src="scripts/full/jquery-ui.js"></script>
+<script src="scripts/full/handlebars.js"></script>
+<script src="scripts/full/ember.js"></script>
+<script src="scripts/full/affix.js"></script>
+<script src="scripts/full/alert.js"></script>
+<script src="scripts/full/button.js"></script>
+<script src="scripts/full/carousel.js"></script>
+<script src="scripts/full/collapse.js"></script>
+<script src="scripts/full/dropdown.js"></script>
+<script src="scripts/full/tab.js"></script>
+<script src="scripts/full/transition.js"></script>
+<script src="scripts/full/scrollspy.js"></script>
+<script src="scripts/full/modal.js"></script>
+<script src="scripts/full/tooltip.js"></script>
+<script src="scripts/full/popover.js"></script>
+<script src="scripts/full/main.js"></script>
+<!-- endbuild -->
+</body>
 </html>
