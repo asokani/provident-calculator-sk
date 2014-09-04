@@ -40,6 +40,7 @@
             <div class="panel panel-default">
                 <table class="table">
                     <tr>
+                        <th>Výše půjčky</th>
                         <th>Doba splácení</th>
                         <th>Týdenní splátka</th>
                         <th>Celkové náklady</th>
@@ -49,12 +50,13 @@
                     </tr>
                     {{#each resultData}}
                     <tr>
-                        <td>{{weeks}}</td>
-                        <td>{{weekPay}}</td>
-                        <td>{{totalCost}}</td>
-                        <td>{{rpmn}}</td>
-                        <td>{{payService}}</td>
-                        <td>{{totalPay}}</td>
+                        <td>{{formatNumber IssueValue}}</td>
+                        <td>{{formatNumber Period}}</td>
+                        <td>{{formatNumber RegularRate}} €</td>
+                        <td>{{formatNumber TotalServiceFee}} €</td>
+                        <td>{{formatNumber APR}}</td>
+                        <td>{{withEuro CollectionFee}}</td>
+                        <td>{{formatNumber TotalAmountPayable}} €</td>
                     </tr>
                     {{/each}}
                 </table>
