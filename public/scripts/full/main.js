@@ -123,6 +123,18 @@
 
   })();
 
+  Ember.RadioButton = Ember.View.extend({
+    tagName: "input",
+    type: "radio",
+    attributeBindings: ["name", "type", "value", "checked:checked:"],
+    click: function() {
+      return this.set("selection", this.$().val());
+    },
+    checked: (function() {
+      return this.get("value") === this.get("selection");
+    }).property()
+  });
+
   Calc = Ember.Application.create({
     rootElement: '#calculator'
   });
@@ -141,7 +153,7 @@
     if (value === "-") {
       return value;
     } else {
-      return NumberFormat.format(parseFloat(value), 2);
+      return NumberFormat.format(parseFloat(value), 2) + " €";
     }
   });
 
@@ -166,6 +178,8 @@
   });
 
   Calc.CalculatorController = Ember.ObjectController.extend({
+    buttonGroupOptions: ['se službou obchodního zástupce', 'bez služby obchodního zástupce'],
+    buttonGroupSelected: null,
     loanValue: null,
     calculatorValue: null,
     isWithService: false,

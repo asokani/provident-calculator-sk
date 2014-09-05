@@ -8,6 +8,7 @@
     "neat": "~1.6.0",
     "bitters": "~0.9.3",
     "ember": "~1.7.0",
-    "handlebars": "~1.1.2"
+    "handlebars": "~1.1.2",
+    "ember-addons.bs_for_ember": "~0.7.0"
   }
 }

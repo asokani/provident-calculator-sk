@@ -377,6 +377,17 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
             break
     return result
 
+Ember.RadioButton = Ember.View.extend
+  tagName : "input"
+  type : "radio"
+  attributeBindings : [ "name", "type", "value", "checked:checked:" ]
+  click : ->
+      this.set("selection", this.$().val())
+  checked : ( ->
+    this.get("value") == this.get("selection")
+  ).property()
+
+
 Calc = Ember.Application.create
   rootElement: '#calculator'
 
@@ -405,6 +416,8 @@ Calc.CalculatorView = Ember.View.extend
         @calculatorUpdate(ui.value)
 
 Calc.CalculatorController = Ember.ObjectController.extend
+  buttonGroupOptions: ['se službou obchodního zástupce', 'bez služby obchodního zástupce']
+  buttonGroupSelected: null
   loanValue: null
   calculatorValue: null
   isWithService: false

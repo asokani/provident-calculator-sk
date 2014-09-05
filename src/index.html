@@ -20,7 +20,11 @@
 
 <script type="text/x-handlebars" data-template-name="calculator">
     <div class="row">
-
+        <div class="col-md-12">
+            <h2>Zvolte si výšku půjčky</h2>
+        </div>
+    </div>
+    <div class="row">
         <div class="col-md-9">
             <div id="slider" style="margin: 13px 0 0;"></div>
         </div>
@@ -31,8 +35,19 @@
         </div>
     </div>
     <div class="row" >
-        <div class="col-md-12" style="margin-bottom: 25px;">
-            {{input type="checkbox" checked=isWithService}} se službou obchodního zástupce
+        <div class="col-md-6" style="margin-bottom: 25px;">
+            <h2>Zvolte si formu půjčky</h2>
+            {{bs-btn-group contentBinding="buttonGroupOptions" selectedBinding="buttonGroupSelected"}}
+
+            <div class="btn-group btn-group-justified ">
+                <label class="btn btn-default active">
+
+                    {{view Ember.RadioButton name="options" selectionBinding="isWithService" value="1"}}
+                </label>
+                <label class="btn btn-default">
+                    {{view Ember.RadioButton name="options" selectionBinding="isWithService" value="0"}}
+                </label>
+            </div>
         </div>
     </div>
     <div class="row">
@@ -79,6 +94,8 @@
 <script src="scripts/full/jquery-ui.js"></script>
 <script src="scripts/full/handlebars.js"></script>
 <script src="scripts/full/ember.js"></script>
+<script src="scripts/full/bs-core.min.js"></script>
+<script src="scripts/full/bs-button.min.js"></script>
 <script src="scripts/full/affix.js"></script>
 <script src="scripts/full/alert.js"></script>
 <script src="scripts/full/button.js"></script>
