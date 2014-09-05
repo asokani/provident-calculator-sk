@@ -388,11 +388,27 @@ Ember.RadioButton = Ember.View.extend
   ).property()
 
 
-Calc = Ember.Application.create
-  rootElement: '#calculator'
 
-Calc.Router.map( ->
-  this.resource('calculator', { path: '/' })
+Calc1 = Ember.Application.create
+  rootElement: '#calculator1'
+
+Calc1.ButtonGroupComponent = Ember.Component.extend({
+  class1: "btn btn-default active"
+  class2: "btn btn-default"
+  updateClass: ( ->
+    if @get("isWithService") == "1"
+      @set("class1", "btn btn-default active")
+      @set("class2", "btn btn-default")
+    else
+      @set("class2", "btn btn-default active")
+      @set("class1", "btn btn-default")
+  ).observes('isWithService')
+  didInsertElement: ->
+    this.$().find("input").hide()
+});
+
+Calc1.Router.map( ->
+  this.resource('calculator1', { path: '/' })
 )
 
 Ember.Handlebars.helper('formatNumber', (value, options) ->
@@ -402,29 +418,97 @@ Ember.Handlebars.helper('withEuro', (value, options) ->
   if value == "-" then value else NumberFormat.format(parseFloat(value), 2) + " €"
 )
 
-Calc.CalculatorView = Ember.View.extend
+Calc1.Calculator1View = Ember.View.extend
   calculatorUpdate: (value) ->
     this.set('controller.calculatorValue', value)
   didInsertElement: ->
     table = this.get('controller.tableData')
     @calculatorUpdate(0)
-    $("#slider").slider
+    $("#slider1").slider
       value: 0,
       min: 0,
       max: table.loan_values.length - 1,
       slide: (event, ui) =>
         @calculatorUpdate(ui.value)
 
-Calc.CalculatorController = Ember.ObjectController.extend
-  buttonGroupOptions: ['se službou obchodního zástupce', 'bez služby obchodního zástupce']
-  buttonGroupSelected: null
+Calc1.Calculator1Controller = Ember.ObjectController.extend
   loanValue: null
+  loanValueEuro: null
+  updateEuro: ( ->
+    @set("loanValueEuro", "" + @get("loanValue") + " €")
+  ).observes("loanValue")
   calculatorValue: null
   isWithService: false
   recalculate: ( ->
     table = @get("tableData")
     calc_value = @get("calculatorValue")
-    with_service = @get("isWithService")
+    with_service = @get("isWithService") == "1"
+    loan_value = table.loan_values[calc_value]
+    @set("loanValue", loan_value)
+    @set("resultData", table.get_result_for(loan_value, with_service))
+  ).observes('isWithService', "calculatorValue")
+  resultData: null
+  init: ->
+    @set("tableData", new TableData())
+  actions:
+    updateSlider: ->
+      console.log("test")
+
+
+Calc2 = Ember.Application.create
+  rootElement: '#calculator2'
+
+Calc2.ButtonGroupComponent = Ember.Component.extend({
+  class1: "btn btn-default active"
+  class2: "btn btn-default"
+  updateClass: ( ->
+    if @get("isWithService") == "1"
+      @set("class1", "btn btn-default active")
+      @set("class2", "btn btn-default")
+    else
+      @set("class2", "btn btn-default active")
+      @set("class1", "btn btn-default")
+  ).observes('isWithService')
+  didInsertElement: ->
+    this.$().find("input").hide()
+});
+
+Calc2.Router.map( ->
+  this.resource('calculator2', { path: '/' })
+)
+
+Ember.Handlebars.helper('formatNumber', (value, options) ->
+  NumberFormat.format(parseFloat(value), 2)
+)
+Ember.Handlebars.helper('withEuro', (value, options) ->
+  if value == "-" then value else NumberFormat.format(parseFloat(value), 2) + " €"
+)
+
+Calc2.Calculator2View = Ember.View.extend
+  calculatorUpdate: (value) ->
+    this.set('controller.calculatorValue', value)
+  didInsertElement: ->
+    table = this.get('controller.tableData')
+    @calculatorUpdate(0)
+    $("#slider2").slider
+      value: 0,
+      min: 0,
+      max: table.loan_values.length - 1,
+      slide: (event, ui) =>
+        @calculatorUpdate(ui.value)
+
+Calc2.Calculator2Controller = Ember.ObjectController.extend
+  loanValue: null
+  loanValueEuro: null
+  updateEuro: ( ->
+    @set("loanValueEuro", "" + @get("loanValue") + " €")
+  ).observes("loanValue")
+  calculatorValue: null
+  isWithService: false
+  recalculate: ( ->
+    table = @get("tableData")
+    calc_value = @get("calculatorValue")
+    with_service = @get("isWithService") == "1"
     loan_value = table.loan_values[calc_value]
     @set("loanValue", loan_value)
     @set("resultData", table.get_result_for(loan_value, with_service))

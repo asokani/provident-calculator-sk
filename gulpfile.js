@@ -61,8 +61,6 @@ var paths = {
 							bower_folder + '/jqueryui/ui/jquery-ui.js',
 							bower_folder + '/ember/ember.js',
 							bower_folder + '/handlebars/handlebars.js',
-                            bower_folder + '/ember-addons.bs_for_ember/dist/js/bs-core.min.js',
-                            bower_folder + '/ember-addons.bs_for_ember/dist/js/bs-button.min.js',
 							bootstrap_js_path + 'affix.js',
 							bootstrap_js_path + 'alert.js',
 							bootstrap_js_path + 'button.js',
