@@ -96,8 +96,14 @@
       return value = columns[jQuery.inArray(name, this.header)].replace(",", ".");
     };
 
-    TableData.prototype.get_result_for = function(loan_value, with_service) {
-      var period, plus, result, type, _i, _j, _len, _len1, _ref, _ref1;
+    TableData.prototype.get_result_for = function(loan_value, with_service, loan_length, count) {
+      var key, key_int, loan_value_int, min_offset, period, plus, result, type, _i, _j, _len, _len1, _ref, _ref1;
+      if (loan_length == null) {
+        loan_length = null;
+      }
+      if (count == null) {
+        count = 0;
+      }
       type = with_service ? "HS delivery by postal order" : "MT";
       result = [];
       _ref = [45, 60, 100];
@@ -106,15 +112,36 @@
         if (this.table[period][loan_value]) {
           result.push(this.table[period][loan_value][type]);
         } else {
-          _ref1 = [10, 20, 30, 40, 50];
-          for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-            plus = _ref1[_j];
-            if (this.table[period][parseInt(loan_value, 10) + plus]) {
-              result.push(this.table[period][parseInt(loan_value, 10) + plus][type]);
-              break;
+          loan_value_int = parseInt(loan_value, 10);
+          if (loan_length === null || count === 1) {
+            _ref1 = [10, 20, 30, 40, 50];
+            for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
+              plus = _ref1[_j];
+              if (this.table[period][loan_value_int + plus]) {
+                result.push(this.table[period][loan_value_int + plus][type]);
+                break;
+              }
+            }
+          } else {
+            min_offset = Number.MAX_VALUE;
+            for (key in this.table[period]) {
+              key_int = parseInt(key, 10);
+              if (Math.abs(loan_value_int - key_int) < min_offset) {
+                min_offset = Math.abs(loan_value_int - key_int);
+              }
+            }
+            if (this.table[period][loan_value_int + min_offset]) {
+              result.push(this.table[period][loan_value_int + min_offset][type]);
+            } else {
+              result.push(this.table[period][loan_value_int - min_offset][type]);
             }
           }
         }
+      }
+      if (loan_length !== null) {
+        return result.filter(function(item) {
+          return parseInt(item.Period, 10) === loan_length;
+        });
       }
       return result;
     };
@@ -139,18 +166,40 @@
     rootElement: '#calculator1'
   });
 
-  Calc1.ButtonGroupComponent = Ember.Component.extend({
-    class1: "btn btn-default active",
-    class2: "btn btn-default",
-    updateClass: (function() {
-      if (this.get("isWithService") === "1") {
-        this.set("class1", "btn btn-default active");
-        return this.set("class2", "btn btn-default");
-      } else {
-        this.set("class2", "btn btn-default active");
-        return this.set("class1", "btn btn-default");
+  Calc1.ButtonGroup1Component = Ember.Component.extend({
+    buttonResult: [],
+    resultValue: 0,
+    init: function() {
+      var num, text, _i, _len, _ref;
+      num = 0;
+      _ref = this.get("buttonTexts");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        text = _ref[_i];
+        this.get("buttonResult").push({
+          value: num,
+          text: text,
+          isActive: num === parseInt(this.get("initialValue"), 10)
+        });
+        num += 1;
       }
-    }).observes('isWithService'),
+      this.set("resultValue", this.get("initialValue"));
+      return this._super();
+    },
+    updateClass: (function() {
+      var index, items, num;
+      index = parseInt(this.get("changeIndex"), 10);
+      items = this.get("buttonResult");
+      num = 0;
+      items.forEach(function(item) {
+        if (num === index) {
+          Ember.set(item, "isActive", true);
+        } else {
+          Ember.set(item, "isActive", false);
+        }
+        return num += 1;
+      });
+      return this.set("resultValue", index);
+    }).observes('changeIndex'),
     didInsertElement: function() {
       return this.$().find("input").hide();
     }
@@ -195,18 +244,19 @@
   });
 
   Calc1.Calculator1Controller = Ember.ObjectController.extend({
+    loanFormTexts: ["se službou obchodního zástupce", "bez služby obchodního zástupce"],
     loanValue: null,
     loanValueEuro: null,
     updateEuro: (function() {
       return this.set("loanValueEuro", "" + this.get("loanValue") + " €");
     }).observes("loanValue"),
     calculatorValue: null,
-    isWithService: false,
+    isWithService: 0,
     recalculate: (function() {
       var calc_value, loan_value, table, with_service;
       table = this.get("tableData");
       calc_value = this.get("calculatorValue");
-      with_service = this.get("isWithService") === "1";
+      with_service = parseInt(this.get("isWithService"), 10) === 0;
       loan_value = table.loan_values[calc_value];
       this.set("loanValue", loan_value);
       return this.set("resultData", table.get_result_for(loan_value, with_service));
@@ -216,9 +266,7 @@
       return this.set("tableData", new TableData());
     },
     actions: {
-      updateSlider: function() {
-        return console.log("test");
-      }
+      updateSlider: function() {}
     }
   });
 
@@ -226,18 +274,40 @@
     rootElement: '#calculator2'
   });
 
-  Calc2.ButtonGroupComponent = Ember.Component.extend({
-    class1: "btn btn-default active",
-    class2: "btn btn-default",
-    updateClass: (function() {
-      if (this.get("isWithService") === "1") {
-        this.set("class1", "btn btn-default active");
-        return this.set("class2", "btn btn-default");
-      } else {
-        this.set("class2", "btn btn-default active");
-        return this.set("class1", "btn btn-default");
+  Calc2.ButtonGroup2Component = Ember.Component.extend({
+    init: function() {
+      var initialValue, num, text, _i, _len, _ref;
+      this._super();
+      num = 0;
+      initialValue = parseInt(this.get("initialValue"), 10);
+      this.set("buttonResult", []);
+      _ref = this.get("buttonTexts");
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        text = _ref[_i];
+        this.set("resultValue", initialValue);
+        this.get("buttonResult").push({
+          value: num,
+          text: text,
+          isActive: num === initialValue
+        });
+        num += 1;
       }
-    }).observes('isWithService'),
+      return this.set("resultValue", this.get("initialValue"));
+    },
+    updateClass: (function() {
+      var index, items, num;
+      index = parseInt(this.get("resultValue"), 10);
+      items = this.get("buttonResult");
+      num = 0;
+      return items.forEach(function(item) {
+        if (num === index) {
+          Ember.set(item, "isActive", true);
+        } else {
+          Ember.set(item, "isActive", false);
+        }
+        return num += 1;
+      });
+    }).observes('resultValue'),
     didInsertElement: function() {
       return this.$().find("input").hide();
     }
@@ -288,24 +358,40 @@
       return this.set("loanValueEuro", "" + this.get("loanValue") + " €");
     }).observes("loanValue"),
     calculatorValue: null,
-    isWithService: false,
+    loanLength: 0,
+    isWithService: 0,
+    withServiceTexts: ["Ano", "Ne"],
+    loanLengthTexts: ["45", "60", "100"],
     recalculate: (function() {
-      var calc_value, loan_value, table, with_service;
+      var calc_value, count, loan_length, loan_sizes, loan_value, results, table, with_service;
       table = this.get("tableData");
       calc_value = this.get("calculatorValue");
-      with_service = this.get("isWithService") === "1";
+      with_service = parseInt(this.get("isWithService"), 10) === 0;
       loan_value = table.loan_values[calc_value];
-      this.set("loanValue", loan_value);
-      return this.set("resultData", table.get_result_for(loan_value, with_service));
-    }).observes('isWithService', "calculatorValue"),
+      loan_sizes = [45, 60, 100];
+      count = 0;
+      while (true) {
+        count += 1;
+        if (count > 3) {
+          break;
+        }
+        loan_length = loan_sizes[this.get("loanLength")];
+        results = table.get_result_for(loan_value, with_service, loan_length, count);
+        if (results.length === 0) {
+          this.set("loanLength", (this.get("loanLength") + 1) % 3);
+        } else {
+          break;
+        }
+      }
+      this.set("loanValue", results[0].IssueValue);
+      return this.set("resultData", results);
+    }).observes('isWithService', "calculatorValue", "loanLength"),
     resultData: null,
     init: function() {
       return this.set("tableData", new TableData());
     },
     actions: {
-      updateSlider: function() {
-        return console.log("test");
-      }
+      updateSlider: function() {}
     }
   });
 

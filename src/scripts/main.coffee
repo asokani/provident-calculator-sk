@@ -364,17 +364,33 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
     #if value != "-"
     #  return parseFloat(value)
     #return value
-  get_result_for: (loan_value, with_service) ->
+  get_result_for: (loan_value, with_service, loan_length = null, count = 0) ->
     type = if with_service then "HS delivery by postal order" else "MT"
     result = []
     for period in [45, 60, 100]
       if @table[period][loan_value]
         result.push(@table[period][loan_value][type])
       else
-        for plus in [10, 20, 30, 40, 50]
-          if @table[period][parseInt(loan_value, 10) + plus]
-            result.push(@table[period][parseInt(loan_value, 10) + plus][type])
-            break
+        loan_value_int = parseInt(loan_value, 10)
+        if loan_length == null or count == 1
+          for plus in [10, 20, 30, 40, 50]
+            if @table[period][loan_value_int + plus]
+              result.push(@table[period][loan_value_int + plus][type])
+              break
+        else
+          min_offset = Number.MAX_VALUE
+          for key of @table[period]
+            key_int = parseInt(key, 10)
+            if Math.abs(loan_value_int - key_int) < min_offset
+              min_offset = Math.abs(loan_value_int - key_int)
+
+          if @table[period][loan_value_int + min_offset]
+            result.push(@table[period][loan_value_int + min_offset][type])
+          else
+            result.push(@table[period][loan_value_int - min_offset][type])
+
+    if loan_length != null
+      return result.filter (item)-> parseInt(item.Period, 10) == loan_length
     return result
 
 Ember.RadioButton = Ember.View.extend
@@ -382,9 +398,9 @@ Ember.RadioButton = Ember.View.extend
   type : "radio"
   attributeBindings : [ "name", "type", "value", "checked:checked:" ]
   click : ->
-      this.set("selection", this.$().val())
+      @set("selection", this.$().val())
   checked : ( ->
-    this.get("value") == this.get("selection")
+    @get("value") == @get("selection")
   ).property()
 
 
@@ -392,17 +408,32 @@ Ember.RadioButton = Ember.View.extend
 Calc1 = Ember.Application.create
   rootElement: '#calculator1'
 
-Calc1.ButtonGroupComponent = Ember.Component.extend({
-  class1: "btn btn-default active"
-  class2: "btn btn-default"
+Calc1.ButtonGroup1Component = Ember.Component.extend({
+  buttonResult: []
+  resultValue: 0
+  init: ->
+    num = 0
+    for text in @get("buttonTexts")
+      @get("buttonResult").push
+        value: num
+        text: text
+        isActive: (num == parseInt(@get("initialValue"), 10))
+      num += 1
+    @set("resultValue", @get("initialValue"))
+    @_super()
   updateClass: ( ->
-    if @get("isWithService") == "1"
-      @set("class1", "btn btn-default active")
-      @set("class2", "btn btn-default")
-    else
-      @set("class2", "btn btn-default active")
-      @set("class1", "btn btn-default")
-  ).observes('isWithService')
+    index = parseInt(@get("changeIndex"), 10)
+    items = @get("buttonResult")
+    num = 0
+    items.forEach((item) ->
+      if num == index
+        Ember.set(item, "isActive", true)
+      else
+        Ember.set(item, "isActive", false)
+      num += 1
+    )
+    @set("resultValue", index)
+  ).observes('changeIndex')
   didInsertElement: ->
     this.$().find("input").hide()
 });
@@ -432,17 +463,18 @@ Calc1.Calculator1View = Ember.View.extend
         @calculatorUpdate(ui.value)
 
 Calc1.Calculator1Controller = Ember.ObjectController.extend
+  loanFormTexts: ["se službou obchodního zástupce", "bez služby obchodního zástupce"]
   loanValue: null
   loanValueEuro: null
   updateEuro: ( ->
     @set("loanValueEuro", "" + @get("loanValue") + " €")
   ).observes("loanValue")
   calculatorValue: null
-  isWithService: false
+  isWithService: 0
   recalculate: ( ->
     table = @get("tableData")
     calc_value = @get("calculatorValue")
-    with_service = @get("isWithService") == "1"
+    with_service = parseInt(@get("isWithService"), 10) == 0
     loan_value = table.loan_values[calc_value]
     @set("loanValue", loan_value)
     @set("resultData", table.get_result_for(loan_value, with_service))
@@ -452,23 +484,38 @@ Calc1.Calculator1Controller = Ember.ObjectController.extend
     @set("tableData", new TableData())
   actions:
     updateSlider: ->
-      console.log("test")
-
 
 Calc2 = Ember.Application.create
   rootElement: '#calculator2'
 
-Calc2.ButtonGroupComponent = Ember.Component.extend({
-  class1: "btn btn-default active"
-  class2: "btn btn-default"
+Calc2.ButtonGroup2Component = Ember.Component.extend({
+  init: ->
+    @_super()
+    num = 0
+    initialValue = parseInt(@get("initialValue"), 10)
+    @set("buttonResult", [])
+    for text in @get("buttonTexts")
+      @set("resultValue", initialValue)
+      @get("buttonResult").push
+        value: num
+        text: text
+        isActive: (num == initialValue)
+      num += 1
+    @set("resultValue", @get("initialValue"))
+
   updateClass: ( ->
-    if @get("isWithService") == "1"
-      @set("class1", "btn btn-default active")
-      @set("class2", "btn btn-default")
-    else
-      @set("class2", "btn btn-default active")
-      @set("class1", "btn btn-default")
-  ).observes('isWithService')
+    index = parseInt(@get("resultValue"), 10)#changeIndex
+    items = @get("buttonResult")
+    num = 0
+    items.forEach((item) ->
+      if num == index
+        Ember.set(item, "isActive", true)
+      else
+        Ember.set(item, "isActive", false)
+      num += 1
+    )
+    #@set("resultValue", index)
+  ).observes('resultValue')#changeIndex
   didInsertElement: ->
     this.$().find("input").hide()
 });
@@ -504,20 +551,33 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
     @set("loanValueEuro", "" + @get("loanValue") + " €")
   ).observes("loanValue")
   calculatorValue: null
-  isWithService: false
+  loanLength: 0
+  isWithService: 0
+  withServiceTexts: ["Ano", "Ne"]
+  loanLengthTexts: ["45", "60", "100"]
   recalculate: ( ->
     table = @get("tableData")
     calc_value = @get("calculatorValue")
-    with_service = @get("isWithService") == "1"
+    with_service = parseInt(@get("isWithService"), 10) == 0
     loan_value = table.loan_values[calc_value]
-    @set("loanValue", loan_value)
-    @set("resultData", table.get_result_for(loan_value, with_service))
-  ).observes('isWithService', "calculatorValue")
+    loan_sizes = [45, 60, 100]
+    count=0
+    while true
+      count+=1
+      break if count > 3
+      loan_length = loan_sizes[@get("loanLength")]
+      results = table.get_result_for(loan_value, with_service, loan_length, count)
+      if results.length == 0
+        @set("loanLength", (@get("loanLength") + 1) % 3)
+      else
+        break
+
+    @set("loanValue", results[0].IssueValue)
+    @set("resultData", results)
+  ).observes('isWithService', "calculatorValue", "loanLength")
   resultData: null
   init: ->
     @set("tableData", new TableData())
   actions:
     updateSlider: ->
-      console.log("test")
-
 

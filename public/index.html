@@ -18,14 +18,23 @@
 </head>
 <body>
 
-<script type="text/x-handlebars" id="components/button-group">
+<script type="text/x-handlebars" id="components/button-group1">
     <div class="btn-group btn-group-justified">
-        <label {{bind-attr class=class1}}>
-        {{view Ember.RadioButton name="options" selectionBinding="isWithService" value="1"}} se službou obchodního zástupce
+        {{#each button in buttonResult}}
+        <label {{bind-attr class=":btn :btn-default button.isActive:active"}}>
+        {{view Ember.RadioButton name="options" selectionBinding="changeIndex" value=button.value}} {{button.text}}
         </label>
-        <label {{bind-attr class=class2}}>
-            {{view Ember.RadioButton name="options" selectionBinding="isWithService" value="0"}} bez služby obchodního zástupce
+        {{/each}}
+    </div>
+</script>
+
+<script type="text/x-handlebars" id="components/button-group2">
+    <div class="btn-group btn-group-justified">
+        {{#each button in buttonResult}}
+        <label {{bind-attr class=":btn :btn-default button.isActive:active"}}>
+        {{view Ember.RadioButton name="options" selectionBinding="resultValue" value=button.value}} {{button.text}}
         </label>
+        {{/each}}
     </div>
 </script>
 
@@ -49,7 +58,7 @@
     <div class="row" >
         <div class="col-md-6" style="margin-bottom: 25px;">
             <h3 style="padding-bottom:10px">Zvolte si formu půjčky</h3>
-            {{button-group isWithService=isWithService}}
+            {{button-group1 resultValue=isWithService buttonTexts=loanFormTexts initialValue="0"}}
         </div>
     </div>
     <div class="row">
@@ -90,7 +99,7 @@
                     {{#each resultData}}
                     <tr>
                         <td>{{formatNumber IssueValue}}</td>
-                        <td>{{formatNumber Period}}</td>
+                        <td>{{Period}}</td>
                         <td>{{formatNumber RegularRate}} €</td>
                         <td>{{formatNumber TotalServiceFee}} €</td>
                         <td>{{formatNumber APR}}</td>
@@ -124,15 +133,16 @@
     <div class="row" >
         <div class="col-md-6" style="margin-bottom: 25px;">
             <h3 style="padding-bottom:10px">Zvolte si volitelnou službu zabezpečení splátek úvěru:</h3>
-            {{button-group isWithService=isWithService}}
+            {{button-group2 resultValue=isWithService buttonTexts=withServiceTexts initialValue="0"}}
         </div>
     </div>
     <div class="row">
         <div class="col-md-3" style="padding-right:0;padding-bottom:15px;">
-            <div style="padding: 0px 14px;margin-bottom: 14px;background-color: #f7f7f9;border: 1px solid #e1e1e8;border-radius: 4px;border-right:none;border-top-right-radius:0;border-bottom-right-radius:0;">
+            <div style="padding: 0px 14px;margin-bottom: 14px;background-color: #f7f7f9;border: 1px solid #e1e1e8;border-radius: 4px;">
                 <h4>Výhody:</h4>
                 <ul>
                     <li>fdasdkjfh asdf</li>
+
                     <li>fdasdkjfh asdf</li>
                     <li>fdasdkjfh asdf</li>
                 </ul>
@@ -142,15 +152,22 @@
     <div class="row" >
         <div class="col-md-6" style="margin-bottom: 25px;">
             <h3 style="padding-bottom:10px">Zvolte si dobu splácení:</h3>
-            {{button-group isWithService=isWithService}}
+            {{button-group2 resultValue=loanLength buttonTexts=loanLengthTexts initialValue="0"}}
         </div>
     </div>
 
     <div class="row">
         <div class="col-md-12">
             <div class="panel panel-default">
+                {{#each resultData}}
                 <table class="table">
                      <tr>
+                         <td>{{formatNumber IssueValue}} €</td><td>Výše půjčky</td>
+                    </tr>
+                    <tr>
+                        <td>{{Period}}</td><td>Délka</td>
+                    </tr>
+                    <tr>
                         <td>{{formatNumber RegularRate}} €</td><td>Týdenní splátka</td>
                     </tr>
                     <tr>
@@ -166,6 +183,7 @@
                         <td>{{formatNumber TotalAmountPayable}} €</td><td>Celkem k zaplacení</td>
                     </tr>
                 </table>
+                {{/each}}
             </div>
         </div>
     </div>
