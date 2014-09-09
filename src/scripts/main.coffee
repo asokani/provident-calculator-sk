@@ -364,7 +364,42 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
     #if value != "-"
     #  return parseFloat(value)
     #return value
-  get_result_for: (loan_value, with_service, loan_length = null, count = 0) ->
+  find_nearest_value: (loan_value, old_loan_value, loan_length_num) ->
+    loan_length = ([45, 60, 100])[loan_length_num]
+    up_down = if (loan_value - old_loan_value) > 0 then 1 else -1
+    for plus in [10, 20, 30, 40, 50]
+      if @table[loan_length][loan_value + plus*(up_down)]
+        return loan_value + plus*(up_down)
+
+    return 0
+
+  get_result_for_value: (loan_value, old_loan_value, with_service, loan_length_num) ->
+    type = if with_service then "HS delivery by postal order" else "MT"
+    for count in [0..2]
+      loan_length = ([45, 60, 100])[loan_length_num]
+      if @table[loan_length][loan_value]
+        return @table[loan_length][loan_value][type]
+      else if (nearest_value = @find_nearest_value(loan_value, old_loan_value, loan_length_num)) > 0
+        return @table[loan_length][nearest_value][type]
+      else
+        if loan_value > old_loan_value
+          loan_length_num += 1
+        else
+          loan_length_num -= 1
+
+  get_result_for_length: (loan_value, with_service, loan_length_num, old_loan_length_num) ->
+    type = if with_service then "HS delivery by postal order" else "MT"
+    result = []
+    loan_length = ([45, 60, 100])[loan_length_num]
+    if @table[loan_length][loan_value]
+      result.push(@table[period][loan_value][type])
+    else
+      if loan_length == null or count == 1
+        for plus in [10, 20, 30, 40, 50]
+          if @table[period][loan_value + plus]
+            result.push(@table[period][loan_value + plus][type])
+            break
+  get_result_for: (loan_value, with_service) ->
     type = if with_service then "HS delivery by postal order" else "MT"
     result = []
     for period in [45, 60, 100]
@@ -372,25 +407,11 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
         result.push(@table[period][loan_value][type])
       else
         loan_value_int = parseInt(loan_value, 10)
-        if loan_length == null or count == 1
-          for plus in [10, 20, 30, 40, 50]
-            if @table[period][loan_value_int + plus]
-              result.push(@table[period][loan_value_int + plus][type])
-              break
-        else
-          min_offset = Number.MAX_VALUE
-          for key of @table[period]
-            key_int = parseInt(key, 10)
-            if Math.abs(loan_value_int - key_int) < min_offset
-              min_offset = Math.abs(loan_value_int - key_int)
+        for plus in [10, 20, 30, 40, 50]
+          if @table[period][loan_value_int + plus]
+            result.push(@table[period][loan_value_int + plus][type])
+            break
 
-          if @table[period][loan_value_int + min_offset]
-            result.push(@table[period][loan_value_int + min_offset][type])
-          else
-            result.push(@table[period][loan_value_int - min_offset][type])
-
-    if loan_length != null
-      return result.filter (item)-> parseInt(item.Period, 10) == loan_length
     return result
 
 Ember.RadioButton = Ember.View.extend
@@ -532,52 +553,62 @@ Ember.Handlebars.helper('withEuro', (value, options) ->
 )
 
 Calc2.Calculator2View = Ember.View.extend
-  calculatorUpdate: (value) ->
-    this.set('controller.calculatorValue', value)
+  sliderUpdate: (value) ->
+    this.set('controller.sliderValue', value)
   didInsertElement: ->
     table = this.get('controller.tableData')
-    @calculatorUpdate(0)
+    @sliderUpdate(0)
     $("#slider2").slider
       value: 0,
       min: 0,
       max: table.loan_values.length - 1,
       slide: (event, ui) =>
-        @calculatorUpdate(ui.value)
+        @sliderUpdate(ui.value)
 
 Calc2.Calculator2Controller = Ember.ObjectController.extend
+  sliderValue: null
   loanValue: null
-  loanValueEuro: null
-  updateEuro: ( ->
-    @set("loanValueEuro", "" + @get("loanValue") + " €")
-  ).observes("loanValue")
-  calculatorValue: null
+  inputLoanValue: null
+  resultData: null
   loanLength: 0
   isWithService: 0
   withServiceTexts: ["Ano", "Ne"]
   loanLengthTexts: ["45", "60", "100"]
-  recalculate: ( ->
-    table = @get("tableData")
-    calc_value = @get("calculatorValue")
-    with_service = parseInt(@get("isWithService"), 10) == 0
-    loan_value = table.loan_values[calc_value]
-    loan_sizes = [45, 60, 100]
-    count=0
-    while true
-      count+=1
-      break if count > 3
-      loan_length = loan_sizes[@get("loanLength")]
-      results = table.get_result_for(loan_value, with_service, loan_length, count)
-      if results.length == 0
-        @set("loanLength", (@get("loanLength") + 1) % 3)
-      else
-        break
+  updateLoanValue: ( ->
+    value = @tableData.loan_values[@get("sliderValue")]
+    @set("loanValue", value)
+  ).observes("sliderValue")
+  updateInputLoanValue: ( ->
+    @set("inputLoanValue", "" + @get("loanValue") + " €")
+  ).observes("loanValue")
+  recalculateInit: ->
+    @with_service = parseInt(@get("isWithService"), 10) == 0
+    @loan_value = parseInt(@get("loanValue"), 10)
+    @loan_length = parseInt(@get("loanLength"), 10)
+  recalculateByLengthBefore: ( ->
+    @old_loan_length = parseInt(@get("loanLength"), 10)
+  ).observesBefore("loanLength")
+  recalculateByLength: ( ->
+    @recalculateInit()
+    #results = @table.get_result_for_length(@loan_value, @with_service, @loan_length, @old_loan_length)
+  ).observes('isWithService', "loanLength")
+  recalculateByValueBefore: ( ->
+    @old_loan_value = parseInt(@get("loanValue"), 10)
+  ).observesBefore("loanValue")
+  recalculateByValue: ( ->
+    @recalculateInit()
+    result = @tableData.get_result_for_value(@loan_value, @old_loan_value, @with_service, @loan_length)
 
-    @set("loanValue", results[0].IssueValue)
-    @set("resultData", results)
-  ).observes('isWithService', "calculatorValue", "loanLength")
-  resultData: null
+    @set("loanValue", result.IssueValue)
+    loan_length = switch result.Period
+      when "45" then 0
+      when "60" then 1
+      when "100" then 2
+    @set("loanLength", loan_length)
+    @set("resultData", [result])
+  ).observes("loanValue")
   init: ->
-    @set("tableData", new TableData())
+    @tableData = new TableData()
   actions:
     updateSlider: ->
 
