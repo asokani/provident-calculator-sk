@@ -130,26 +130,23 @@
     };
 
     TableData.prototype.get_result_for_length = function(loan_value, with_service, loan_length_num, old_loan_length_num) {
-      var loan_length, plus, result, type, _i, _len, _ref, _results;
+      var key, loan_length, min_offset, type;
       type = with_service ? "HS delivery by postal order" : "MT";
-      result = [];
       loan_length = [45, 60, 100][loan_length_num];
       if (this.table[loan_length][loan_value]) {
-        return result.push(this.table[period][loan_value][type]);
+        return this.table[loan_length][loan_value][type];
       } else {
-        if (loan_length === null || count === 1) {
-          _ref = [10, 20, 30, 40, 50];
-          _results = [];
-          for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-            plus = _ref[_i];
-            if (this.table[period][loan_value + plus]) {
-              result.push(this.table[period][loan_value + plus][type]);
-              break;
-            } else {
-              _results.push(void 0);
-            }
+        min_offset = Number.MAX_VALUE;
+        for (key in this.table[loan_length]) {
+          key = parseInt(key, 10);
+          if (Math.abs(loan_value - key) < min_offset) {
+            min_offset = Math.abs(loan_value - key);
           }
-          return _results;
+        }
+        if (this.table[loan_length][loan_value + min_offset]) {
+          return this.table[loan_length][loan_value + min_offset][type];
+        } else {
+          return this.table[loan_length][loan_value - min_offset][type];
         }
       }
     };
@@ -402,23 +399,34 @@
     }).observes("loanValue"),
     recalculateInit: function() {
       this.with_service = parseInt(this.get("isWithService"), 10) === 0;
-      this.loan_value = parseInt(this.get("loanValue"), 10);
-      return this.loan_length = parseInt(this.get("loanLength"), 10);
+      this.loan_value = parseInt(this.get("loanValue"), 10) || 0;
+      return this.loan_length = parseInt(this.get("loanLength"), 10) || 0;
     },
     recalculateByLengthBefore: (function() {
-      return this.old_loan_length = parseInt(this.get("loanLength"), 10);
+      return this.old_loan_length = parseInt(this.get("loanLength"), 10) || 0;
     }).observesBefore("loanLength"),
     recalculateByLength: (function() {
-      return this.recalculateInit();
+      var result;
+      this.recalculateInit();
+      result = this.tableData.get_result_for_length(this.loan_value, this.with_service, this.loan_length, this.old_loan_length);
+      this.set("loanValue", result.IssueValue);
+      return this.recalculateUpdate(result);
     }).observes('isWithService', "loanLength"),
     recalculateByValueBefore: (function() {
-      return this.old_loan_value = parseInt(this.get("loanValue"), 10);
+      return this.old_loan_value = parseInt(this.get("loanValue"), 10) || 0;
     }).observesBefore("loanValue"),
     recalculateByValue: (function() {
-      var loan_length, result;
+      var result;
       this.recalculateInit();
       result = this.tableData.get_result_for_value(this.loan_value, this.old_loan_value, this.with_service, this.loan_length);
-      this.set("loanValue", result.IssueValue);
+      return this.recalculateUpdate(result);
+    }).observes("loanValue"),
+    recalculateUpdate: function(result) {
+      var loan_length, slider_value;
+      slider_value = this.tableData.loan_values.indexOf(result.IssueValue);
+      if ($("#slider2").slider() !== void 0) {
+        $("#slider2").slider('value', slider_value);
+      }
       loan_length = (function() {
         switch (result.Period) {
           case "45":
@@ -431,7 +439,7 @@
       })();
       this.set("loanLength", loan_length);
       return this.set("resultData", [result]);
-    }).observes("loanValue"),
+    },
     init: function() {
       return this.tableData = new TableData();
     },

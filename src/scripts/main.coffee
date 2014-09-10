@@ -389,16 +389,20 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
 
   get_result_for_length: (loan_value, with_service, loan_length_num, old_loan_length_num) ->
     type = if with_service then "HS delivery by postal order" else "MT"
-    result = []
     loan_length = ([45, 60, 100])[loan_length_num]
     if @table[loan_length][loan_value]
-      result.push(@table[period][loan_value][type])
+      return @table[loan_length][loan_value][type]
     else
-      if loan_length == null or count == 1
-        for plus in [10, 20, 30, 40, 50]
-          if @table[period][loan_value + plus]
-            result.push(@table[period][loan_value + plus][type])
-            break
+      min_offset = Number.MAX_VALUE
+      for key of @table[loan_length]
+        key = parseInt(key, 10)
+        if Math.abs(loan_value - key) < min_offset
+          min_offset = Math.abs(loan_value - key)
+
+      if @table[loan_length][loan_value + min_offset]
+        return @table[loan_length][loan_value + min_offset][type]
+      else
+        return @table[loan_length][loan_value - min_offset][type]
   get_result_for: (loan_value, with_service) ->
     type = if with_service then "HS delivery by postal order" else "MT"
     result = []
@@ -583,30 +587,36 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
   ).observes("loanValue")
   recalculateInit: ->
     @with_service = parseInt(@get("isWithService"), 10) == 0
-    @loan_value = parseInt(@get("loanValue"), 10)
-    @loan_length = parseInt(@get("loanLength"), 10)
+    @loan_value = parseInt(@get("loanValue"), 10) || 0
+    @loan_length = parseInt(@get("loanLength"), 10) || 0
   recalculateByLengthBefore: ( ->
-    @old_loan_length = parseInt(@get("loanLength"), 10)
+    @old_loan_length = parseInt(@get("loanLength"), 10) || 0
   ).observesBefore("loanLength")
   recalculateByLength: ( ->
     @recalculateInit()
-    #results = @table.get_result_for_length(@loan_value, @with_service, @loan_length, @old_loan_length)
+    result = @tableData.get_result_for_length(@loan_value, @with_service, @loan_length, @old_loan_length)
+    @set("loanValue", result.IssueValue)
+    @recalculateUpdate(result)
   ).observes('isWithService', "loanLength")
   recalculateByValueBefore: ( ->
-    @old_loan_value = parseInt(@get("loanValue"), 10)
+    @old_loan_value = parseInt(@get("loanValue"), 10) || 0
   ).observesBefore("loanValue")
   recalculateByValue: ( ->
     @recalculateInit()
     result = @tableData.get_result_for_value(@loan_value, @old_loan_value, @with_service, @loan_length)
+    @recalculateUpdate(result)
+  ).observes("loanValue")
+  recalculateUpdate: (result) ->
+    slider_value = @tableData.loan_values.indexOf(result.IssueValue)
+    if $("#slider2").slider() != undefined
+      $("#slider2").slider('value', slider_value)
 
-    @set("loanValue", result.IssueValue)
     loan_length = switch result.Period
       when "45" then 0
       when "60" then 1
       when "100" then 2
     @set("loanLength", loan_length)
     @set("resultData", [result])
-  ).observes("loanValue")
   init: ->
     @tableData = new TableData()
   actions:
