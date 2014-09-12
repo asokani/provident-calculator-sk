@@ -116,9 +116,9 @@
       for (count = _i = 0; _i <= 2; count = ++_i) {
         loan_length = [45, 60, 100][loan_length_num];
         if (this.table[loan_length][loan_value]) {
-          return this.table[loan_length][loan_value][type];
+          return this.extend_result(this.table[loan_length][loan_value][type]);
         } else if ((nearest_value = this.find_nearest_value(loan_value, old_loan_value, loan_length_num)) > 0) {
-          return this.table[loan_length][nearest_value][type];
+          return this.extend_result(this.table[loan_length][nearest_value][type]);
         } else {
           if (loan_value > old_loan_value) {
             loan_length_num += 1;
@@ -144,9 +144,9 @@
           }
         }
         if (this.table[loan_length][loan_value + min_offset]) {
-          return this.table[loan_length][loan_value + min_offset][type];
+          return this.extend_result(this.table[loan_length][loan_value + min_offset][type]);
         } else {
-          return this.table[loan_length][loan_value - min_offset][type];
+          return this.extend_result(this.table[loan_length][loan_value - min_offset][type]);
         }
       }
     };
@@ -159,19 +159,25 @@
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         period = _ref[_i];
         if (this.table[period][loan_value]) {
-          result.push(this.table[period][loan_value][type]);
+          result.push(this.extend_result(this.table[period][loan_value][type]));
         } else {
           loan_value_int = parseInt(loan_value, 10);
           _ref1 = [10, 20, 30, 40, 50];
           for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
             plus = _ref1[_j];
             if (this.table[period][loan_value_int + plus]) {
-              result.push(this.table[period][loan_value_int + plus][type]);
+              result.push(this.extend_result(this.table[period][loan_value_int + plus][type]));
               break;
             }
           }
         }
       }
+      return result;
+    };
+
+    TableData.prototype.extend_result = function(result) {
+      result.tooltipFinalRate = "Posledná splátka: " + (NumberFormat.format(parseFloat(result.FinalRate), 2)) + " €";
+      result.tooltipServiceFee = "Garantovaná služba: " + (NumberFormat.format(parseFloat(result.ServiceFee), 2)) + " €<br>Úrok: " + (NumberFormat.format(parseFloat(result.Interest), 2)) + " €<br> Úroková sadzba: " + (NumberFormat.format(parseFloat(result.AnnualInterestRate), 2)) + " %";
       return result;
     };
 
@@ -230,187 +236,25 @@
     }
   });
 
-  var template = '' +
-        '<div class="arrow"></div>' +
-        '<div class="popover-content">' +
-        '{{#if content}}' +
-        '        {{content}}' +
-        '{{else}}' +
-        '{{yield}}' +
-        '{{/if}}' +
-        '    </div>';
-Ember.TEMPLATES["components/bs-popover"] = Ember.Handlebars.compile(template);
-
-Ember.BsPopoverComponent = Ember.Component.extend({
-    classNames: 'popover',
-    classNameBindings:  ['fade', 'in', 'top', 'left', 'right', 'bottom'],
-
-    top: function(){
-        return this.get('realPlacement')=='top';
-    }.property('realPlacement'),
-    left: function(){
-        return this.get('realPlacement')=='left';
-    }.property('realPlacement'),
-    right: function(){
-        return this.get('realPlacement')=='right';
-    }.property('realPlacement'),
-    bottom: function(){
-        return this.get('realPlacement')=='bottom';
-    }.property('realPlacement'),
-
-    title: '',
-    content: '',
-    html: false,
-    delay: 0,
-    isVisible: false,
-    animation: true,
-    fade: function(){
-        return this.get('animation');
-    }.property('animation'),
-    in: function(){
-        return this.get('isVisible');
-    }.property('isVisible'),
-    triggers: 'hover focus',
-    placement: 'top',
-    onElement: null,
-    $element: null,
-    $tip: null,
-    inserted: false,
-
-    styleUpdater: function(){
-        if( !this.$tip || !this.get('isVisible')){
-            return;
-        }
-        this.$tip.css('display','block');
-        var placement = this.get('realPlacement');
-        var pos = this.getPosition();
-        var actualWidth = this.$tip[0].offsetWidth;
-        var actualHeight = this.$tip[0].offsetHeight;
-        var calculatedOffset = this.getCalculatedOffset(placement, pos, actualWidth, actualHeight);
-
-        this.$tip.css('top',calculatedOffset.top);
-        this.$tip.css('left',calculatedOffset.left);
-        if(this.firstTime){
-            this.firstTime = false;
-            this.styleUpdater();
-            this.firstTime = true;
-        }
-    }.observes('content','realPlacement','inserted', 'isVisible'),
-
-
-    didInsertElement: function(){
-        this.$tip = this.$();
-        if(this.get('onElement')){
-            this.$element=$('#'+this.get('onElement'));
-        }else if(this.$tip.prev(':not(script)').length){
-            this.$element = this.$tip.prev(':not(script)');
-        }else{
-            this.$element = this.$tip.parent(':not(script)');
-        }
-
-        var triggers = this.triggers.split(' ');
-
-        for (var i = triggers.length; i--;) {
-            var trigger = triggers[i];
-
-            if (trigger == 'click') {
-                this.$element.on('click',$.proxy(this.toggle, this));
-            } else if (trigger != 'manual') {
-                var eventIn  = trigger == 'hover' ? 'mouseenter' : 'focus';
-                var eventOut = trigger == 'hover' ? 'mouseleave' : 'blur';
-
-                this.$element.on(eventIn, $.proxy(this.enter, this));
-                this.$element.on(eventOut, $.proxy(this.leave, this));
-            }
-        }
-        this.set('inserted',true);
-    },
-
-
-    toggle: function(){
-        this.toggleProperty('isVisible');
-    },
-
-    enter: function(){
-        this.set('isVisible',true);
-    },
-
-    leave: function(){
-        this.set('isVisible',false);
-    },
-
-    afterRender: function(){
-        this.notifyPropertyChange('content');
-    },
-
-
-    realPlacement: function(){
-
-        if(!this.$tip) return null;
-        var placement = this.get('placement') || '';
-        var autoToken = /\s?auto?\s?/i;
-        var autoPlace = autoToken.test(placement);
-        if (autoPlace)
-            placement = placement.replace(autoToken, '') || 'top';
-
-        var pos = this.getPosition();
-        var actualWidth = this.$tip[0].offsetWidth;
-        var actualHeight = this.$tip[0].offsetHeight;
-
-        if (autoPlace) {
-            var $parent = this.$element.parent();
-
-            var orgPlacement = placement;
-            var docScroll = document.documentElement.scrollTop || document.body.scrollTop;
-            var parentWidth = $parent.outerWidth();
-            var parentHeight = $parent.outerHeight();
-            var parentLeft = $parent.offset().left;
-
-            placement = placement == 'bottom' && pos.top + pos.height + actualHeight - docScroll > parentHeight ? 'top' :
-                    placement == 'top' && pos.top - docScroll - actualHeight < 0 ? 'bottom' :
-                            placement == 'right' && pos.right + actualWidth > parentWidth ? 'left' :
-                                    placement == 'left' && pos.left - actualWidth < parentLeft ? 'right' :
-                                            placement;
-        }
-        return placement;
-
-    }.property('placement','inserted'),
-
-
-    hasContent: function () {
-        return this.get('title');
-    },
-
-    getPosition: function () {
-        var el = this.$element[0];
-        return $.extend({}, (typeof el.getBoundingClientRect == 'function') ? el.getBoundingClientRect() : {
-            width: el.offsetWidth, height: el.offsetHeight
-        }, this.$element.offset());
-    },
-
-
-    getCalculatedOffset: function (placement, pos, actualWidth, actualHeight) {
-        return placement == 'bottom' ? { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2  } :
-                placement == 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2  } :
-                        placement == 'left' ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
-                            /* placement == 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width   }
-    }
-
-});;
-
-
   Calc1 = Ember.Application.create({
     rootElement: '#calculator1'
   });
 
   Calc1.ButtonGroupComponent = Ember.ButtonGroupComponent.extend();
 
-  Calc1.BsPopoverComponent = Ember.BsPopoverComponent.extend();
+  Calc1.TooltipBoxController = Bootstrap.TooltipBoxController;
 
-  Calc1.Router.map(function() {
-    return this.resource('calculator1', {
-      path: '/'
-    });
+  Calc1.ApplicationRoute = Ember.Route.extend({
+    renderTemplate: function() {
+      var controller;
+      this.render('calculator1');
+      controller = this.controllerFor('tooltip-box');
+      return this.render("bs-tooltip-box", {
+        outlet: "bs-tooltip-box",
+        controller: controller,
+        into: "calculator1"
+      });
+    }
   });
 
   Ember.Handlebars.helper('formatNumber', function(value, options) {
@@ -455,13 +299,14 @@ Ember.BsPopoverComponent = Ember.Component.extend({
     calculatorValue: null,
     isWithService: 0,
     recalculate: (function() {
-      var calc_value, loan_value, table, with_service;
+      var calc_value, loan_value, results, table, with_service;
       table = this.get("tableData");
       calc_value = this.get("calculatorValue");
       with_service = parseInt(this.get("isWithService"), 10) === 0;
       loan_value = table.loan_values[calc_value];
       this.set("loanValue", loan_value);
-      return this.set("resultData", table.get_result_for(loan_value, with_service));
+      results = table.get_result_for(loan_value, with_service);
+      return this.set("resultData", results);
     }).observes('isWithService', "calculatorValue"),
     resultData: null,
     init: function() {
@@ -478,12 +323,19 @@ Ember.BsPopoverComponent = Ember.Component.extend({
 
   Calc2.ButtonGroupComponent = Ember.ButtonGroupComponent.extend();
 
-  Calc2.BsPopoverComponent = Ember.BsPopoverComponent.extend();
+  Calc2.TooltipBoxController = Bootstrap.TooltipBoxController;
 
-  Calc2.Router.map(function() {
-    return this.resource('calculator2', {
-      path: '/'
-    });
+  Calc2.ApplicationRoute = Ember.Route.extend({
+    renderTemplate: function() {
+      var controller;
+      this.render('calculator2');
+      controller = this.controllerFor('tooltip-box');
+      return this.render("bs-tooltip-box", {
+        outlet: "bs-tooltip-box",
+        controller: controller,
+        into: "calculator2"
+      });
+    }
   });
 
   Ember.Handlebars.helper('formatNumber', function(value, options) {
@@ -576,6 +428,8 @@ Ember.BsPopoverComponent = Ember.Component.extend({
       })();
       this.set("loanLength", loan_length);
       this.set("loanValue", result.IssueValue);
+      result.tooltipFinalRate = "Posledná splátka: " + (NumberFormat.format(parseFloat(result.FinalRate), 2)) + " €";
+      result.tooltipServiceFee = "Garantovaná služba: " + (NumberFormat.format(parseFloat(result.ServiceFee), 2)) + " €<br>Úrok: " + (NumberFormat.format(parseFloat(result.Interest), 2)) + " €<br> Úroková sadzba: " + (NumberFormat.format(parseFloat(result.AnnualInterestRate), 2)) + " %";
       return this.set("resultData", [result]);
     },
     init: function() {

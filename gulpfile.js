@@ -63,6 +63,7 @@ var paths = {
 							bower_folder + '/ember/ember.js',
 							bower_folder + '/ember-addons.bs_for_ember/dist/js/bs-core.max.js',
 							bower_folder + '/ember-addons.bs_for_ember/dist/js/bs-popover.max.js',
+							bower_folder + '/ember-addons.bs_for_ember/dist/js/bs-alert.max.js',
 
 							'src/scripts/' + js_filename + '.js'
 						],

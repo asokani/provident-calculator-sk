@@ -378,9 +378,9 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
     for count in [0..2]
       loan_length = ([45, 60, 100])[loan_length_num]
       if @table[loan_length][loan_value]
-        return @table[loan_length][loan_value][type]
+        return @extend_result(@table[loan_length][loan_value][type])
       else if (nearest_value = @find_nearest_value(loan_value, old_loan_value, loan_length_num)) > 0
-        return @table[loan_length][nearest_value][type]
+        return @extend_result(@table[loan_length][nearest_value][type])
       else
         if loan_value > old_loan_value
           loan_length_num += 1
@@ -400,24 +400,28 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
           min_offset = Math.abs(loan_value - key)
 
       if @table[loan_length][loan_value + min_offset]
-        return @table[loan_length][loan_value + min_offset][type]
+        return @extend_result(@table[loan_length][loan_value + min_offset][type])
       else
-        return @table[loan_length][loan_value - min_offset][type]
+        return @extend_result(@table[loan_length][loan_value - min_offset][type])
   get_result_for: (loan_value, with_service) ->
     type = if with_service then "HS delivery by postal order" else "MT"
     result = []
     for period in [45, 60, 100]
       if @table[period][loan_value]
-        result.push(@table[period][loan_value][type])
+        result.push(@extend_result(@table[period][loan_value][type]))
       else
         loan_value_int = parseInt(loan_value, 10)
         for plus in [10, 20, 30, 40, 50]
           if @table[period][loan_value_int + plus]
-            result.push(@table[period][loan_value_int + plus][type])
+            result.push(@extend_result(@table[period][loan_value_int + plus][type]))
             break
 
     return result
+  extend_result: (result) ->
+    result.tooltipFinalRate = "Posledná splátka: #{NumberFormat.format(parseFloat(result.FinalRate), 2)} €"
+    result.tooltipServiceFee = "Garantovaná služba: #{NumberFormat.format(parseFloat(result.ServiceFee), 2)} €<br>Úrok: #{NumberFormat.format(parseFloat(result.Interest), 2)} €<br> Úroková sadzba: #{NumberFormat.format(parseFloat(result.AnnualInterestRate), 2)} %"
 
+    return result
 Ember.RadioButton = Ember.View.extend
   tagName : "input"
   type : "radio"
@@ -467,18 +471,15 @@ Calc1.ButtonGroupComponent = Ember.ButtonGroupComponent.extend()
 
 Calc1.TooltipBoxController = Bootstrap.TooltipBoxController
 
-Calc1.Router.map( ->
-  this.resource('calculator1', { path: '/' })
-)
-
-Calc1.ApplicationRoute = Ember.Route.extend(
+Calc1.ApplicationRoute = Ember.Route.extend
   renderTemplate: ->
-    this.render()
-    controller = this.controllerFor('tooltip-box')
-    this.render "bs-tooltip-box",
+    @render('calculator1')
+    controller = @controllerFor('tooltip-box')
+    @render "bs-tooltip-box",
       outlet: "bs-tooltip-box"
       controller: controller
-      into: "application"
+      into: "calculator1"
+
 
 Ember.Handlebars.helper('formatNumber', (value, options) ->
   NumberFormat.format(parseFloat(value), 2)
@@ -515,7 +516,9 @@ Calc1.Calculator1Controller = Ember.ObjectController.extend
     with_service = parseInt(@get("isWithService"), 10) == 0
     loan_value = table.loan_values[calc_value]
     @set("loanValue", loan_value)
-    @set("resultData", table.get_result_for(loan_value, with_service))
+    results = table.get_result_for(loan_value, with_service)
+
+    @set("resultData", results)
   ).observes('isWithService', "calculatorValue")
   resultData: null
   init: ->
@@ -528,9 +531,15 @@ Calc2 = Ember.Application.create
 
 Calc2.ButtonGroupComponent = Ember.ButtonGroupComponent.extend()
 Calc2.TooltipBoxController = Bootstrap.TooltipBoxController
-Calc2.Router.map( ->
-  this.resource('calculator2', { path: '/' })
-)
+
+Calc2.ApplicationRoute = Ember.Route.extend
+  renderTemplate: ->
+    @render('calculator2')
+    controller = @controllerFor('tooltip-box')
+    @render "bs-tooltip-box",
+      outlet: "bs-tooltip-box"
+      controller: controller
+      into: "calculator2"
 
 Ember.Handlebars.helper('formatNumber', (value, options) ->
   NumberFormat.format(parseFloat(value), 2)
@@ -599,6 +608,8 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
       when "100" then 2
     @set("loanLength", loan_length)
     @set("loanValue", result.IssueValue)
+    result.tooltipFinalRate = "Posledná splátka: #{NumberFormat.format(parseFloat(result.FinalRate), 2)} €"
+    result.tooltipServiceFee = "Garantovaná služba: #{NumberFormat.format(parseFloat(result.ServiceFee), 2)} €<br>Úrok: #{NumberFormat.format(parseFloat(result.Interest), 2)} €<br> Úroková sadzba: #{NumberFormat.format(parseFloat(result.AnnualInterestRate), 2)} %"
     @set("resultData", [result])
   init: ->
     @tableData = new TableData()

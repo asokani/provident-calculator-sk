@@ -27,11 +27,11 @@
         {{/each}}
     </div>
 </script>
-
 <script type="text/x-handlebars" data-template-name="calculator1">
+    {{outlet bs-tooltip-box}}
     <div class="row">
         <div class="col-xs-12">
-            <h3>Zvoľte si výšku pôžičky:</h3>
+            <h3>Zvoľte si výšku pôžičky: </h3>
         </div>
     </div>
     <div class="row">
@@ -68,21 +68,21 @@
             <div class="panel panel-default">
                 <table class="table">
                     <tr>
-                        <th class="warning">Výška pôžičky <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip content="Suma, ktorú si chcete požičať."}}>?</button></th>
-                        <th class="warning">Doba splácania v týždňov <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Počet týždňov - obdobie, v ktorom chcete pôžičku splácať.">?</button></th>
-                        <th class="danger">Týždenná splátka <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Suma, ktorú budete splácať každý týždeň.">?</button></th>
+                        <th class="warning">Výška pôžičky <button type="button" class="btn btn-default btn-xs" {{bs-bind-tooltip placement="auto right"  content="Suma, ktorú si chcete požičať."}}>?</button></th>
+                        <th class="warning">Doba splácania v týždňov <button type="button" class="btn btn-default  btn-xs"  {{bs-bind-tooltip placement="auto right"  content="Počet týždňov - obdobie, v ktorom chcete pôžičku splácať."}}>?</button></th>
+                        <th class="danger">Týždenná splátka <button type="button" class="btn btn-default  btn-xs"  {{bs-bind-tooltip placement="auto right"  content="Suma, ktorú budete splácať každý týždeň."}}>?</button></th>
                         <th>Celkové náklady na spotrebitelský úver</th>
-                        <th>RPMN <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Ročná percentuálna miera nákladov. ">?</button></th>
-                        <th>Služba zabezpečenia splátok <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma. ">?</button></th>
-                        <th>Celkom na zaplatenie <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Celková splatná suma
-">?</button></th>
+                        <th>RPMN <button type="button" class="btn btn-default  btn-xs"  {{bs-bind-tooltip placement="auto right"  content="Ročná percentuálna miera nákladov."}}>?</button></th>
+                        <th>Služba zabezpečenia splátok <button type="button" class="btn btn-default  btn-xs"  {{bs-bind-tooltip placement="auto right"  content="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma. "}}>?</button></th>
+                        <th>Celkom na zaplatenie <button type="button" class="btn btn-default  btn-xs"  {{bs-bind-tooltip placement="auto right"  content="Celková splatná suma
+"}}>?</button></th>
                     </tr>
                     {{#each resultData}}
                     <tr>
                         <td class="warning">{{formatNumber IssueValue}} €</td>
                         <td class="warning">{{Period}}</td>
-                        <td class="danger"><strong>{{formatNumber RegularRate}} €</strong></td>
-                        <td>{{formatNumber TotalServiceFee}} €</td>
+                        <td class="danger"><strong>{{formatNumber RegularRate}} € <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip html="true" placement="auto right"  content=tooltipFinalRate}}>+</button></strong></td>
+                        <td>{{formatNumber TotalServiceFee}} € <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip html="true" placement="auto right"  content=tooltipServiceFee}}>+</button></td>
                         <td>{{formatNumber APR}} %</td>
                         <td>{{withEuro CollectionFee}}</td>
                         <td>{{formatNumber TotalAmountPayable}} €</td>
@@ -96,6 +96,7 @@
 </script>
 
 <script type="text/x-handlebars" data-template-name="calculator2">
+    {{outlet bs-tooltip-box}}
     <div class="row">
         <div class="col-xs-12">
             <h3>Zvoľte si výšku pôžičky:</h3>
@@ -113,7 +114,7 @@
     </div>
     <div class="row" >
         <div class="col-xs-8" style="margin-bottom: 25px;">
-            <h3 style="padding-bottom:10px">Zvoľte si voliteľnú službu zabezpečenia splátok úveru:  <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma.">?</button></h3>
+            <h3 style="padding-bottom:10px">Zvoľte si voliteľnú službu zabezpečenia splátok úveru:  <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma."}}>?</button></h3>
             {{button-group resultValue=isWithService buttonTexts=withServiceTexts initialValue="0"}}
         </div>
     </div>
@@ -142,27 +143,26 @@
                 {{#each resultData}}
                 <table class="table second">
                      <tr class="warning">
-                         <td>{{formatNumber IssueValue}} €</td><th>Výška pôžičky <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Suma, ktorú si chcete požičať.">?</button></th>
+                         <td>{{formatNumber IssueValue}} €</td><th>Výška pôžičky <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Suma, ktorú si chcete požičať."}}>?</button></th>
                     </tr>
                     <tr class="warning">
-                        <td>{{Period}}</td><th>Doba splácania v týždňov <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Počet týždňov - obdobie, v ktorom chcete pôžičku splácať.">?</button></th>
+                        <td>{{Period}}</td><th>Doba splácania v týždňov <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Počet týždňov - obdobie, v ktorom chcete pôžičku splácať."}}>?</button></th>
                     </tr>
                     <tr class="danger">
-                        <td><strong>{{formatNumber RegularRate}} €</strong> <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip" title="Posledná splátka: {{formatNumber FinalRate}} €">+</button></td><th>Týždenná splátka <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Suma, ktorú budete splácať každý týždeň.">?</button></th>
+                        <td><strong>{{formatNumber RegularRate}} €</strong> <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip html="true" placement="auto right"  content=tooltipFinalRate}}>+</button></td><th>Týždenná splátka <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Suma, ktorú budete splácať každý týždeň."}}>?</button></th>
                     </tr>
                     <tr>
-                        <td>{{formatNumber TotalServiceFee}} € <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip" title="Garantovaná služba: {{formatNumber ServiceFee}} €, Úrok: {{formatNumber Interest}} €, Úroková sadzba: {{formatNumber AnnualInterestRate
-}} %">+</button></td><th>Celkové náklady na spotrebitelský úver</th>
+                        <td>{{formatNumber TotalServiceFee}} € <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip html="true" placement="auto right"  content=tooltipServiceFee}}>+</button></td><th>Celkové náklady na spotrebitelský úver</th>
                     </tr>
                     <tr>
-                        <td>{{formatNumber APR}} %</td><th>RPMN <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Ročná percentuálna miera nákladov. ">?</button></th>
+                        <td>{{formatNumber APR}} %</td><th>RPMN <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Ročná percentuálna miera nákladov. "}}>?</button></th>
                     </tr>
                     <tr>
-                        <td>{{withEuro CollectionFee}}</td><th>Služba zabezpečenia splátok <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma. ">?</button></th>
+                        <td>{{withEuro CollectionFee}}</td><th>Služba zabezpečenia splátok <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma. "}}>?</button></th>
                     </tr>
                     <tr>
-                        <td>{{formatNumber TotalAmountPayable}} €</td><th>Celkom na zaplatenie <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Celková splatná suma
-">?</button></th>
+                        <td>{{formatNumber TotalAmountPayable}} €</td><th>Celkom na zaplatenie <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip placement="auto right"  content="Celková splatná suma
+"}}>?</button></th>
                     </tr>
                 </table>
                 {{/each}}
@@ -188,6 +188,7 @@
 <script src="scripts/full/ember.js"></script>
 <script src="scripts/full/bs-core.max.js"></script>
 <script src="scripts/full/bs-popover.max.js"></script>
+<script src="scripts/full/bs-alert.max.js"></script>
 <script src="scripts/full/main.js"></script>
 <!-- endbuild -->
 </body>
