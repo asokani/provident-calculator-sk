@@ -6535,4 +6535,13 @@ body {
   background: white;
   color: black; }
 
+table td,
+table th {
+  text-align: center;
+  font-weight: normal; }
+
+table.second th {
+  font-weight: normal;
+  text-align: left; }
+
 /*# sourceMappingURL=master.css.map */

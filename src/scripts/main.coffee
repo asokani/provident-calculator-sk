@@ -361,9 +361,9 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
     @loan_values = @loan_values.unique()
   get_value: (columns, name) ->
     value = columns[jQuery.inArray(name, @header)].replace(",", ".")
-    #if value != "-"
-    #  return parseFloat(value)
-    #return value
+  #if value != "-"
+  #  return parseFloat(value)
+  #return value
   find_nearest_value: (loan_value, old_loan_value, loan_length_num) ->
     loan_length = ([45, 60, 100])[loan_length_num]
     up_down = if (loan_value - old_loan_value) > 0 then 1 else -1
@@ -423,97 +423,12 @@ Ember.RadioButton = Ember.View.extend
   type : "radio"
   attributeBindings : [ "name", "type", "value", "checked:checked:" ]
   click : ->
-      @set("selection", this.$().val())
+    @set("selection", this.$().val())
   checked : ( ->
     @get("value") == @get("selection")
   ).property()
 
-
-
-Calc1 = Ember.Application.create
-  rootElement: '#calculator1'
-
-Calc1.ButtonGroup1Component = Ember.Component.extend({
-  buttonResult: []
-  resultValue: 0
-  init: ->
-    num = 0
-    for text in @get("buttonTexts")
-      @get("buttonResult").push
-        value: num
-        text: text
-        isActive: (num == parseInt(@get("initialValue"), 10))
-      num += 1
-    @set("resultValue", @get("initialValue"))
-    @_super()
-  updateClass: ( ->
-    index = parseInt(@get("changeIndex"), 10)
-    items = @get("buttonResult")
-    num = 0
-    items.forEach((item) ->
-      if num == index
-        Ember.set(item, "isActive", true)
-      else
-        Ember.set(item, "isActive", false)
-      num += 1
-    )
-    @set("resultValue", index)
-  ).observes('changeIndex')
-  didInsertElement: ->
-    this.$().find("input").hide()
-});
-
-Calc1.Router.map( ->
-  this.resource('calculator1', { path: '/' })
-)
-
-Ember.Handlebars.helper('formatNumber', (value, options) ->
-  NumberFormat.format(parseFloat(value), 2)
-)
-Ember.Handlebars.helper('withEuro', (value, options) ->
-  if value == "-" then value else NumberFormat.format(parseFloat(value), 2) + " €"
-)
-
-Calc1.Calculator1View = Ember.View.extend
-  calculatorUpdate: (value) ->
-    this.set('controller.calculatorValue', value)
-  didInsertElement: ->
-    table = this.get('controller.tableData')
-    @calculatorUpdate(0)
-    $("#slider1").slider
-      value: 0,
-      min: 0,
-      max: table.loan_values.length - 1,
-      slide: (event, ui) =>
-        @calculatorUpdate(ui.value)
-
-Calc1.Calculator1Controller = Ember.ObjectController.extend
-  loanFormTexts: ["se službou obchodního zástupce", "bez služby obchodního zástupce"]
-  loanValue: null
-  loanValueEuro: null
-  updateEuro: ( ->
-    @set("loanValueEuro", "" + @get("loanValue") + " €")
-  ).observes("loanValue")
-  calculatorValue: null
-  isWithService: 0
-  recalculate: ( ->
-    table = @get("tableData")
-    calc_value = @get("calculatorValue")
-    with_service = parseInt(@get("isWithService"), 10) == 0
-    loan_value = table.loan_values[calc_value]
-    @set("loanValue", loan_value)
-    @set("resultData", table.get_result_for(loan_value, with_service))
-  ).observes('isWithService', "calculatorValue")
-  resultData: null
-  init: ->
-    @set("tableData", new TableData())
-  actions:
-    updateSlider: ->
-
-Calc2 = Ember.Application.create
-  rootElement: '#calculator2'
-
-Calc2.ButtonGroup2Component = Ember.Component.extend({
+Ember.ButtonGroupComponent = Ember.Component.extend({
   init: ->
     @_super()
     num = 0
@@ -545,6 +460,74 @@ Calc2.ButtonGroup2Component = Ember.Component.extend({
     this.$().find("input").hide()
 });
 
+Calc1 = Ember.Application.create
+  rootElement: '#calculator1'
+
+Calc1.ButtonGroupComponent = Ember.ButtonGroupComponent.extend()
+
+Calc1.TooltipBoxController = Bootstrap.TooltipBoxController
+
+Calc1.Router.map( ->
+  this.resource('calculator1', { path: '/' })
+)
+
+Calc1.ApplicationRoute = Ember.Route.extend(
+  renderTemplate: ->
+    this.render()
+    controller = this.controllerFor('tooltip-box')
+    this.render "bs-tooltip-box",
+      outlet: "bs-tooltip-box"
+      controller: controller
+      into: "application"
+
+Ember.Handlebars.helper('formatNumber', (value, options) ->
+  NumberFormat.format(parseFloat(value), 2)
+)
+Ember.Handlebars.helper('withEuro', (value, options) ->
+  if value == "-" then value else NumberFormat.format(parseFloat(value), 2) + " €"
+)
+
+Calc1.Calculator1View = Ember.View.extend
+  calculatorUpdate: (value) ->
+    this.set('controller.calculatorValue', value)
+  didInsertElement: ->
+    table = this.get('controller.tableData')
+    @calculatorUpdate(0)
+    $("#slider1").slider
+      value: 0,
+      min: 0,
+      max: table.loan_values.length - 1,
+      slide: (event, ui) =>
+        @calculatorUpdate(ui.value)
+
+Calc1.Calculator1Controller = Ember.ObjectController.extend
+  loanFormTexts: ["so službou zabezpečenia splátok", "bez služby zabezpečenia splátok"]
+  loanValue: null
+  loanValueEuro: null
+  updateEuro: ( ->
+    @set("loanValueEuro", "" + @get("loanValue") + " €")
+  ).observes("loanValue")
+  calculatorValue: null
+  isWithService: 0
+  recalculate: ( ->
+    table = @get("tableData")
+    calc_value = @get("calculatorValue")
+    with_service = parseInt(@get("isWithService"), 10) == 0
+    loan_value = table.loan_values[calc_value]
+    @set("loanValue", loan_value)
+    @set("resultData", table.get_result_for(loan_value, with_service))
+  ).observes('isWithService', "calculatorValue")
+  resultData: null
+  init: ->
+    @set("tableData", new TableData())
+  actions:
+    updateSlider: ->
+
+Calc2 = Ember.Application.create
+  rootElement: '#calculator2'
+
+Calc2.ButtonGroupComponent = Ember.ButtonGroupComponent.extend()
+Calc2.TooltipBoxController = Bootstrap.TooltipBoxController
 Calc2.Router.map( ->
   this.resource('calculator2', { path: '/' })
 )
@@ -576,7 +559,7 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
   resultData: null
   loanLength: 0
   isWithService: 0
-  withServiceTexts: ["Ano", "Ne"]
+  withServiceTexts: ["Áno", "Nie"]
   loanLengthTexts: ["45", "60", "100"]
   updateLoanValue: ( ->
     value = @tableData.loan_values[@get("sliderValue")]
@@ -595,7 +578,6 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
   recalculateByLength: ( ->
     @recalculateInit()
     result = @tableData.get_result_for_length(@loan_value, @with_service, @loan_length, @old_loan_length)
-    @set("loanValue", result.IssueValue)
     @recalculateUpdate(result)
   ).observes('isWithService', "loanLength")
   recalculateByValueBefore: ( ->
@@ -616,9 +598,9 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
       when "60" then 1
       when "100" then 2
     @set("loanLength", loan_length)
+    @set("loanValue", result.IssueValue)
     @set("resultData", [result])
   init: ->
     @tableData = new TableData()
   actions:
     updateSlider: ->
-

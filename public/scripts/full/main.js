@@ -191,35 +191,32 @@
     }).property()
   });
 
-  Calc1 = Ember.Application.create({
-    rootElement: '#calculator1'
-  });
-
-  Calc1.ButtonGroup1Component = Ember.Component.extend({
-    buttonResult: [],
-    resultValue: 0,
+  Ember.ButtonGroupComponent = Ember.Component.extend({
     init: function() {
-      var num, text, _i, _len, _ref;
+      var initialValue, num, text, _i, _len, _ref;
+      this._super();
       num = 0;
+      initialValue = parseInt(this.get("initialValue"), 10);
+      this.set("buttonResult", []);
       _ref = this.get("buttonTexts");
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         text = _ref[_i];
+        this.set("resultValue", initialValue);
         this.get("buttonResult").push({
           value: num,
           text: text,
-          isActive: num === parseInt(this.get("initialValue"), 10)
+          isActive: num === initialValue
         });
         num += 1;
       }
-      this.set("resultValue", this.get("initialValue"));
-      return this._super();
+      return this.set("resultValue", this.get("initialValue"));
     },
     updateClass: (function() {
       var index, items, num;
-      index = parseInt(this.get("changeIndex"), 10);
+      index = parseInt(this.get("resultValue"), 10);
       items = this.get("buttonResult");
       num = 0;
-      items.forEach(function(item) {
+      return items.forEach(function(item) {
         if (num === index) {
           Ember.set(item, "isActive", true);
         } else {
@@ -227,12 +224,188 @@
         }
         return num += 1;
       });
-      return this.set("resultValue", index);
-    }).observes('changeIndex'),
+    }).observes('resultValue'),
     didInsertElement: function() {
       return this.$().find("input").hide();
     }
   });
+
+  var template = '' +
+        '<div class="arrow"></div>' +
+        '<div class="popover-content">' +
+        '{{#if content}}' +
+        '        {{content}}' +
+        '{{else}}' +
+        '{{yield}}' +
+        '{{/if}}' +
+        '    </div>';
+Ember.TEMPLATES["components/bs-popover"] = Ember.Handlebars.compile(template);
+
+Ember.BsPopoverComponent = Ember.Component.extend({
+    classNames: 'popover',
+    classNameBindings:  ['fade', 'in', 'top', 'left', 'right', 'bottom'],
+
+    top: function(){
+        return this.get('realPlacement')=='top';
+    }.property('realPlacement'),
+    left: function(){
+        return this.get('realPlacement')=='left';
+    }.property('realPlacement'),
+    right: function(){
+        return this.get('realPlacement')=='right';
+    }.property('realPlacement'),
+    bottom: function(){
+        return this.get('realPlacement')=='bottom';
+    }.property('realPlacement'),
+
+    title: '',
+    content: '',
+    html: false,
+    delay: 0,
+    isVisible: false,
+    animation: true,
+    fade: function(){
+        return this.get('animation');
+    }.property('animation'),
+    in: function(){
+        return this.get('isVisible');
+    }.property('isVisible'),
+    triggers: 'hover focus',
+    placement: 'top',
+    onElement: null,
+    $element: null,
+    $tip: null,
+    inserted: false,
+
+    styleUpdater: function(){
+        if( !this.$tip || !this.get('isVisible')){
+            return;
+        }
+        this.$tip.css('display','block');
+        var placement = this.get('realPlacement');
+        var pos = this.getPosition();
+        var actualWidth = this.$tip[0].offsetWidth;
+        var actualHeight = this.$tip[0].offsetHeight;
+        var calculatedOffset = this.getCalculatedOffset(placement, pos, actualWidth, actualHeight);
+
+        this.$tip.css('top',calculatedOffset.top);
+        this.$tip.css('left',calculatedOffset.left);
+        if(this.firstTime){
+            this.firstTime = false;
+            this.styleUpdater();
+            this.firstTime = true;
+        }
+    }.observes('content','realPlacement','inserted', 'isVisible'),
+
+
+    didInsertElement: function(){
+        this.$tip = this.$();
+        if(this.get('onElement')){
+            this.$element=$('#'+this.get('onElement'));
+        }else if(this.$tip.prev(':not(script)').length){
+            this.$element = this.$tip.prev(':not(script)');
+        }else{
+            this.$element = this.$tip.parent(':not(script)');
+        }
+
+        var triggers = this.triggers.split(' ');
+
+        for (var i = triggers.length; i--;) {
+            var trigger = triggers[i];
+
+            if (trigger == 'click') {
+                this.$element.on('click',$.proxy(this.toggle, this));
+            } else if (trigger != 'manual') {
+                var eventIn  = trigger == 'hover' ? 'mouseenter' : 'focus';
+                var eventOut = trigger == 'hover' ? 'mouseleave' : 'blur';
+
+                this.$element.on(eventIn, $.proxy(this.enter, this));
+                this.$element.on(eventOut, $.proxy(this.leave, this));
+            }
+        }
+        this.set('inserted',true);
+    },
+
+
+    toggle: function(){
+        this.toggleProperty('isVisible');
+    },
+
+    enter: function(){
+        this.set('isVisible',true);
+    },
+
+    leave: function(){
+        this.set('isVisible',false);
+    },
+
+    afterRender: function(){
+        this.notifyPropertyChange('content');
+    },
+
+
+    realPlacement: function(){
+
+        if(!this.$tip) return null;
+        var placement = this.get('placement') || '';
+        var autoToken = /\s?auto?\s?/i;
+        var autoPlace = autoToken.test(placement);
+        if (autoPlace)
+            placement = placement.replace(autoToken, '') || 'top';
+
+        var pos = this.getPosition();
+        var actualWidth = this.$tip[0].offsetWidth;
+        var actualHeight = this.$tip[0].offsetHeight;
+
+        if (autoPlace) {
+            var $parent = this.$element.parent();
+
+            var orgPlacement = placement;
+            var docScroll = document.documentElement.scrollTop || document.body.scrollTop;
+            var parentWidth = $parent.outerWidth();
+            var parentHeight = $parent.outerHeight();
+            var parentLeft = $parent.offset().left;
+
+            placement = placement == 'bottom' && pos.top + pos.height + actualHeight - docScroll > parentHeight ? 'top' :
+                    placement == 'top' && pos.top - docScroll - actualHeight < 0 ? 'bottom' :
+                            placement == 'right' && pos.right + actualWidth > parentWidth ? 'left' :
+                                    placement == 'left' && pos.left - actualWidth < parentLeft ? 'right' :
+                                            placement;
+        }
+        return placement;
+
+    }.property('placement','inserted'),
+
+
+    hasContent: function () {
+        return this.get('title');
+    },
+
+    getPosition: function () {
+        var el = this.$element[0];
+        return $.extend({}, (typeof el.getBoundingClientRect == 'function') ? el.getBoundingClientRect() : {
+            width: el.offsetWidth, height: el.offsetHeight
+        }, this.$element.offset());
+    },
+
+
+    getCalculatedOffset: function (placement, pos, actualWidth, actualHeight) {
+        return placement == 'bottom' ? { top: pos.top + pos.height, left: pos.left + pos.width / 2 - actualWidth / 2  } :
+                placement == 'top' ? { top: pos.top - actualHeight, left: pos.left + pos.width / 2 - actualWidth / 2  } :
+                        placement == 'left' ? { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left - actualWidth } :
+                            /* placement == 'right' */ { top: pos.top + pos.height / 2 - actualHeight / 2, left: pos.left + pos.width   }
+    }
+
+});;
+
+
+  Calc1 = Ember.Application.create({
+    rootElement: '#calculator1'
+  });
+
+  Calc1.ButtonGroupComponent = Ember.ButtonGroupComponent.extend();
+
+  Calc1.BsPopoverComponent = Ember.BsPopoverComponent.extend();
 
   Calc1.Router.map(function() {
     return this.resource('calculator1', {
@@ -273,7 +446,7 @@
   });
 
   Calc1.Calculator1Controller = Ember.ObjectController.extend({
-    loanFormTexts: ["se službou obchodního zástupce", "bez služby obchodního zástupce"],
+    loanFormTexts: ["so službou zabezpečenia splátok", "bez služby zabezpečenia splátok"],
     loanValue: null,
     loanValueEuro: null,
     updateEuro: (function() {
@@ -303,44 +476,9 @@
     rootElement: '#calculator2'
   });
 
-  Calc2.ButtonGroup2Component = Ember.Component.extend({
-    init: function() {
-      var initialValue, num, text, _i, _len, _ref;
-      this._super();
-      num = 0;
-      initialValue = parseInt(this.get("initialValue"), 10);
-      this.set("buttonResult", []);
-      _ref = this.get("buttonTexts");
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        text = _ref[_i];
-        this.set("resultValue", initialValue);
-        this.get("buttonResult").push({
-          value: num,
-          text: text,
-          isActive: num === initialValue
-        });
-        num += 1;
-      }
-      return this.set("resultValue", this.get("initialValue"));
-    },
-    updateClass: (function() {
-      var index, items, num;
-      index = parseInt(this.get("resultValue"), 10);
-      items = this.get("buttonResult");
-      num = 0;
-      return items.forEach(function(item) {
-        if (num === index) {
-          Ember.set(item, "isActive", true);
-        } else {
-          Ember.set(item, "isActive", false);
-        }
-        return num += 1;
-      });
-    }).observes('resultValue'),
-    didInsertElement: function() {
-      return this.$().find("input").hide();
-    }
-  });
+  Calc2.ButtonGroupComponent = Ember.ButtonGroupComponent.extend();
+
+  Calc2.BsPopoverComponent = Ember.BsPopoverComponent.extend();
 
   Calc2.Router.map(function() {
     return this.resource('calculator2', {
@@ -387,7 +525,7 @@
     resultData: null,
     loanLength: 0,
     isWithService: 0,
-    withServiceTexts: ["Ano", "Ne"],
+    withServiceTexts: ["Áno", "Nie"],
     loanLengthTexts: ["45", "60", "100"],
     updateLoanValue: (function() {
       var value;
@@ -409,7 +547,6 @@
       var result;
       this.recalculateInit();
       result = this.tableData.get_result_for_length(this.loan_value, this.with_service, this.loan_length, this.old_loan_length);
-      this.set("loanValue", result.IssueValue);
       return this.recalculateUpdate(result);
     }).observes('isWithService', "loanLength"),
     recalculateByValueBefore: (function() {
@@ -438,6 +575,7 @@
         }
       })();
       this.set("loanLength", loan_length);
+      this.set("loanValue", result.IssueValue);
       return this.set("resultData", [result]);
     },
     init: function() {

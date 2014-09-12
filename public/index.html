@@ -18,17 +18,7 @@
 </head>
 <body>
 
-<script type="text/x-handlebars" id="components/button-group1">
-    <div class="btn-group btn-group-justified">
-        {{#each button in buttonResult}}
-        <label {{bind-attr class=":btn :btn-default button.isActive:active"}}>
-        {{view Ember.RadioButton name="options" selectionBinding="changeIndex" value=button.value}} {{button.text}}
-        </label>
-        {{/each}}
-    </div>
-</script>
-
-<script type="text/x-handlebars" id="components/button-group2">
+<script type="text/x-handlebars" id="components/button-group">
     <div class="btn-group btn-group-justified">
         {{#each button in buttonResult}}
         <label {{bind-attr class=":btn :btn-default button.isActive:active"}}>
@@ -40,15 +30,15 @@
 
 <script type="text/x-handlebars" data-template-name="calculator1">
     <div class="row">
-        <div class="col-md-12">
-            <h3>Zvolte si výšku půjčky</h3>
+        <div class="col-xs-12">
+            <h3>Zvoľte si výšku pôžičky:</h3>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-9">
+        <div class="col-xs-9">
             <div id="slider1" style="margin: 13px 0 0;"></div>
         </div>
-        <div class="col-md-2 col-md-offset-1">
+        <div class="col-xs-2 col-xs-offset-1">
             <div class="form-group">
                 {{input type="text" class="form-control" value=loanValueEuro}}
             </div>
@@ -56,53 +46,44 @@
     </div>
 
     <div class="row" >
-        <div class="col-md-6" style="margin-bottom: 25px;">
-            <h3 style="padding-bottom:10px">Zvolte si formu půjčky</h3>
-            {{button-group1 resultValue=isWithService buttonTexts=loanFormTexts initialValue="0"}}
+        <div class="col-xs-8" style="margin-bottom: 25px;">
+            <h3 style="padding-bottom:10px">Zvoľte si formu pôžičky:</h3>
+            {{button-group resultValue=isWithService buttonTexts=loanFormTexts initialValue="0"}}
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3" style="padding-right:0;padding-bottom:15px;">
-            <div style="padding: 0px 14px;margin-bottom: 14px;background-color: #f7f7f9;border: 1px solid #e1e1e8;border-radius: 4px;border-right:none;border-top-right-radius:0;border-bottom-right-radius:0;">
-            <h4>Výhody:</h4>
-            <ul>
-                <li>fdasdkjfh asdf</li>
-                <li>fdasdkjfh asdf</li>
-                <li>fdasdkjfh asdf</li>
-            </ul>
+        <div class="col-xs-8" style="padding-bottom:15px;">
+            <div style="padding: 0px 14px;margin-bottom: 14px;background-color: #f7f7f9;border: 1px solid #e1e1e8;border-radius: 4px;">
+            <h4>Výhody služby zabezpečenia splátok:</h4>
+                <ul>
+                    <li>obchodný zástupca vás počas celej doby splácania bude navštevovať a preberať splátku</li>
+                    <li>vám kedykoľvek aj počas splácania pôžičky vie poradiť</li>
+                    <li>vie vám vyjsť v ústrety v prípade, že sa oneskoríte so splátkou alebo ak sa dostanete do problémov so splácaním</li>
+                </ul>
             </div>
         </div>
-        <div class="col-md-3" style="padding-left:0;padding-bottom:15px;">
-            <div style="padding: 0 14px;margin-bottom: 14px;background-color: #f7f7f9;border: 1px solid #e1e1e8;border-radius: 4px;border-top-left-radius:0;border-bottom-left-radius:0;">
-            <h4>Výhody:</h4>
-            <ul>
-                <li>fdasdkjfh asdf</li>
-                <li>fdasdkjfh asdf</li>
-                <li>fdasdkjfh asdf</li>
-            </ul>
-        </div>
-        </div>
     </div>
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-xs-12">
             <div class="panel panel-default">
                 <table class="table">
                     <tr>
-                        <th>Výše půjčky</th>
-                        <th>Doba splácení</th>
-                        <th>Týdenní splátka</th>
-                        <th>Celkové náklady</th>
-                        <th>RPMN</th>
-                        <th>Služba zabezpeční splátek</th>
-                        <th>Celkem zaplatit</th>
+                        <th class="warning">Výška pôžičky <button type="button" class="btn btn-default  btn-xs" {{bs-bind-tooltip content="Suma, ktorú si chcete požičať."}}>?</button></th>
+                        <th class="warning">Doba splácania v týždňov <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Počet týždňov - obdobie, v ktorom chcete pôžičku splácať.">?</button></th>
+                        <th class="danger">Týždenná splátka <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Suma, ktorú budete splácať každý týždeň.">?</button></th>
+                        <th>Celkové náklady na spotrebitelský úver</th>
+                        <th>RPMN <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Ročná percentuálna miera nákladov. ">?</button></th>
+                        <th>Služba zabezpečenia splátok <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma. ">?</button></th>
+                        <th>Celkom na zaplatenie <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Celková splatná suma
+">?</button></th>
                     </tr>
                     {{#each resultData}}
                     <tr>
-                        <td>{{formatNumber IssueValue}}</td>
-                        <td>{{Period}}</td>
-                        <td>{{formatNumber RegularRate}} €</td>
+                        <td class="warning">{{formatNumber IssueValue}} €</td>
+                        <td class="warning">{{Period}}</td>
+                        <td class="danger"><strong>{{formatNumber RegularRate}} €</strong></td>
                         <td>{{formatNumber TotalServiceFee}} €</td>
-                        <td>{{formatNumber APR}}</td>
+                        <td>{{formatNumber APR}} %</td>
                         <td>{{withEuro CollectionFee}}</td>
                         <td>{{formatNumber TotalAmountPayable}} €</td>
                     </tr>
@@ -116,71 +97,72 @@
 
 <script type="text/x-handlebars" data-template-name="calculator2">
     <div class="row">
-        <div class="col-md-12">
-            <h3>Zvolte si výšku půjčky</h3>
+        <div class="col-xs-12">
+            <h3>Zvoľte si výšku pôžičky:</h3>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-9">
+        <div class="col-xs-5">
             <div id="slider2" style="margin: 13px 0 0;"></div>
         </div>
-        <div class="col-md-2 col-md-offset-1">
+        <div class="col-xs-2 col-xs-offset-1">
             <div class="form-group">
                 {{input type="text" class="form-control" value=inputLoanValue}}
             </div>
         </div>
     </div>
     <div class="row" >
-        <div class="col-md-6" style="margin-bottom: 25px;">
-            <h3 style="padding-bottom:10px">Zvolte si volitelnou službu zabezpečení splátek úvěru:</h3>
-            {{button-group2 resultValue=isWithService buttonTexts=withServiceTexts initialValue="0"}}
+        <div class="col-xs-8" style="margin-bottom: 25px;">
+            <h3 style="padding-bottom:10px">Zvoľte si voliteľnú službu zabezpečenia splátok úveru:  <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma.">?</button></h3>
+            {{button-group resultValue=isWithService buttonTexts=withServiceTexts initialValue="0"}}
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3" style="padding-right:0;padding-bottom:15px;">
+        <div class="col-xs-8" style="padding-bottom:15px;">
             <div style="padding: 0px 14px;margin-bottom: 14px;background-color: #f7f7f9;border: 1px solid #e1e1e8;border-radius: 4px;">
-                <h4>Výhody:</h4>
+                <h4>Výhody služby zabezpečenia splátok:</h4>
                 <ul>
-                    <li>fdasdkjfh asdf</li>
-
-                    <li>fdasdkjfh asdf</li>
-                    <li>fdasdkjfh asdf</li>
+                    <li>obchodný zástupca vás počas celej doby splácania bude navštevovať a preberať splátku</li>
+                    <li>vám kedykoľvek aj počas splácania pôžičky vie poradiť</li>
+                    <li>vie vám vyjsť v ústrety v prípade, že sa oneskoríte so splátkou alebo ak sa dostanete do problémov so splácaním</li>
                 </ul>
             </div>
         </div>
     </div>
     <div class="row" >
-        <div class="col-md-6" style="margin-bottom: 25px;">
-            <h3 style="padding-bottom:10px">Zvolte si dobu splácení:</h3>
-            {{button-group2 resultValue=loanLength buttonTexts=loanLengthTexts initialValue="0"}}
+        <div class="col-xs-8" style="margin-bottom: 25px;">
+            <h3 style="padding-bottom:10px">Doba splácania v týždňov</h3>
+            {{button-group resultValue=loanLength buttonTexts=loanLengthTexts initialValue="0"}}
         </div>
     </div>
 
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-xs-8">
             <div class="panel panel-default">
                 {{#each resultData}}
-                <table class="table">
-                     <tr>
-                         <td>{{formatNumber IssueValue}} €</td><td>Výše půjčky</td>
+                <table class="table second">
+                     <tr class="warning">
+                         <td>{{formatNumber IssueValue}} €</td><th>Výška pôžičky <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Suma, ktorú si chcete požičať.">?</button></th>
+                    </tr>
+                    <tr class="warning">
+                        <td>{{Period}}</td><th>Doba splácania v týždňov <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Počet týždňov - obdobie, v ktorom chcete pôžičku splácať.">?</button></th>
+                    </tr>
+                    <tr class="danger">
+                        <td><strong>{{formatNumber RegularRate}} €</strong> <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip" title="Posledná splátka: {{formatNumber FinalRate}} €">+</button></td><th>Týždenná splátka <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Suma, ktorú budete splácať každý týždeň.">?</button></th>
                     </tr>
                     <tr>
-                        <td>{{Period}}</td><td>Délka</td>
+                        <td>{{formatNumber TotalServiceFee}} € <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip" title="Garantovaná služba: {{formatNumber ServiceFee}} €, Úrok: {{formatNumber Interest}} €, Úroková sadzba: {{formatNumber AnnualInterestRate
+}} %">+</button></td><th>Celkové náklady na spotrebitelský úver</th>
                     </tr>
                     <tr>
-                        <td>{{formatNumber RegularRate}} €</td><td>Týdenní splátka</td>
+                        <td>{{formatNumber APR}} %</td><th>RPMN <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Ročná percentuálna miera nákladov. ">?</button></th>
                     </tr>
                     <tr>
-                        <td>{{formatNumber TotalServiceFee}} €</td><td>Celkové náklady na spotřebitelský úvěr</td>
+                        <td>{{withEuro CollectionFee}}</td><th>Služba zabezpečenia splátok <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Voliteľne nebudete musieť poslať každý týždeň splátku na náš bankový účet, ale náš obchodný zástupca vás navštíví doma. ">?</button></th>
                     </tr>
                     <tr>
-                        <td>{{formatNumber APR}}</td><td>RPMN</td>
-                    </tr>
-                    <tr>
-                        <td>{{withEuro CollectionFee}}</td><td>Volitelná služba zabezpečení splátek úvěru</td>
-                    </tr>
-                    <tr>
-                        <td>{{formatNumber TotalAmountPayable}} €</td><td>Celkem k zaplacení</td>
+                        <td>{{formatNumber TotalAmountPayable}} €</td><th>Celkom na zaplatenie <button type="button" class="btn btn-default  btn-xs has-tooltip" data-toggle="tooltip"   title="Celková splatná suma
+">?</button></th>
                     </tr>
                 </table>
                 {{/each}}
@@ -190,7 +172,7 @@
 
 </script>
 
-<div class="container" style="padding: 20px 0 0;">
+<div class="container" style="padding: 20px 15px 0; min-width:990px;">
     <h1 class="page-header">Plná kalkulačka</h1>
     <div id="calculator1"></div>
 
@@ -204,18 +186,8 @@
 <script src="scripts/full/jquery-ui.js"></script>
 <script src="scripts/full/handlebars.js"></script>
 <script src="scripts/full/ember.js"></script>
-<script src="scripts/full/affix.js"></script>
-<script src="scripts/full/alert.js"></script>
-<script src="scripts/full/button.js"></script>
-<script src="scripts/full/carousel.js"></script>
-<script src="scripts/full/collapse.js"></script>
-<script src="scripts/full/dropdown.js"></script>
-<script src="scripts/full/tab.js"></script>
-<script src="scripts/full/transition.js"></script>
-<script src="scripts/full/scrollspy.js"></script>
-<script src="scripts/full/modal.js"></script>
-<script src="scripts/full/tooltip.js"></script>
-<script src="scripts/full/popover.js"></script>
+<script src="scripts/full/bs-core.max.js"></script>
+<script src="scripts/full/bs-popover.max.js"></script>
 <script src="scripts/full/main.js"></script>
 <!-- endbuild -->
 </body>
