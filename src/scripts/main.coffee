@@ -365,7 +365,7 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
   #  return parseFloat(value)
   #return value
   find_nearest_value: (loan_value, old_loan_value, loan_length_num) ->
-    loan_length = ([45, 60, 100])[loan_length_num]
+    loan_length = ([60, 100])[loan_length_num]
     up_down = if (loan_value - old_loan_value) > 0 then 1 else -1
     for plus in [10, 20, 30, 40, 50]
       if @table[loan_length][loan_value + plus*(up_down)]
@@ -376,7 +376,7 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
   get_result_for_value: (loan_value, old_loan_value, with_service, loan_length_num) ->
     type = if with_service then "HS delivery by postal order" else "MT"
     for count in [0..2]
-      loan_length = ([45, 60, 100])[loan_length_num]
+      loan_length = ([60, 100])[loan_length_num]
       if @table[loan_length][loan_value]
         return @extend_result(@table[loan_length][loan_value][type])
       else if (nearest_value = @find_nearest_value(loan_value, old_loan_value, loan_length_num)) > 0
@@ -389,7 +389,7 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
 
   get_result_for_length: (loan_value, with_service, loan_length_num, old_loan_length_num) ->
     type = if with_service then "HS delivery by postal order" else "MT"
-    loan_length = ([45, 60, 100])[loan_length_num]
+    loan_length = ([60, 100])[loan_length_num]
     if @table[loan_length][loan_value]
       return @table[loan_length][loan_value][type]
     else
@@ -406,7 +406,7 @@ SK	1	100	MT	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	610,3	-	1157,03	3457,03	-	
   get_result_for: (loan_value, with_service) ->
     type = if with_service then "HS delivery by postal order" else "MT"
     result = []
-    for period in [45, 60, 100]
+    for period in [60, 100]
       if @table[period][loan_value]
         result.push(@extend_result(@table[period][loan_value][type]))
       else
@@ -494,6 +494,8 @@ Calc1.Calculator1View = Ember.View.extend
   didInsertElement: ->
     table = this.get('controller.tableData')
     @calculatorUpdate(0)
+    $("#calc1input").on "click", ->
+        $(this).select()
     $("#slider1").slider
       value: 0,
       min: 0,
@@ -515,6 +517,8 @@ Calc1.Calculator1Controller = Ember.ObjectController.extend
     calc_value = @get("calculatorValue")
     with_service = parseInt(@get("isWithService"), 10) == 0
     loan_value = table.loan_values[calc_value]
+    if $("#slider1").slider() != undefined
+      $("#slider1").slider('value', calc_value)
     @set("loanValue", loan_value)
     results = table.get_result_for(loan_value, with_service)
 
@@ -524,7 +528,18 @@ Calc1.Calculator1Controller = Ember.ObjectController.extend
   init: ->
     @set("tableData", new TableData())
   actions:
-    updateSlider: ->
+    doneEdit: ->
+      new_value = parseInt(@get("loanValueEuro"), 10)
+      nearest_index = null
+      nearest_value = Number.MAX_VALUE
+      for value, key in @tableData.loan_values
+        offset = Math.abs(parseInt(value, 10) - new_value)
+        if offset < nearest_value
+          nearest_index = key
+          nearest_value = offset
+      @set("calculatorValue", nearest_index)
+      @updateEuro()
+      return false
 
 Calc2 = Ember.Application.create
   rootElement: '#calculator2'
@@ -554,6 +569,8 @@ Calc2.Calculator2View = Ember.View.extend
   didInsertElement: ->
     table = this.get('controller.tableData')
     @sliderUpdate(0)
+    $("#calc2input").on "click", ->
+      $(this).select()
     $("#slider2").slider
       value: 0,
       min: 0,
@@ -569,7 +586,7 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
   loanLength: 0
   isWithService: 0
   withServiceTexts: ["Áno", "Nie"]
-  loanLengthTexts: ["45", "60", "100"]
+  loanLengthTexts: ["60", "100"]
   updateLoanValue: ( ->
     value = @tableData.loan_values[@get("sliderValue")]
     @set("loanValue", value)
@@ -603,9 +620,8 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
       $("#slider2").slider('value', slider_value)
 
     loan_length = switch result.Period
-      when "45" then 0
-      when "60" then 1
-      when "100" then 2
+      when "60" then 0
+      when "100" then 1
     @set("loanLength", loan_length)
     @set("loanValue", result.IssueValue)
     result.tooltipFinalRate = "Posledná splátka: #{NumberFormat.format(parseFloat(result.FinalRate), 2)} €"
@@ -614,4 +630,15 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
   init: ->
     @tableData = new TableData()
   actions:
-    updateSlider: ->
+    doneEdit: ->
+      new_value = parseInt(@get("inputLoanValue"), 10)
+      nearest_index = null
+      nearest_value = Number.MAX_VALUE
+      for value, key in @tableData.loan_values
+        offset = Math.abs(parseInt(value, 10) - new_value)
+        if offset < nearest_value
+          nearest_index = key
+          nearest_value = offset
+      @set("sliderValue", nearest_index)
+      @updateInputLoanValue()
+      return false
