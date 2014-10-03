@@ -93,21 +93,27 @@
 
     TableData.prototype.get_value = function(columns, name) {
       var value;
-      return value = columns[jQuery.inArray(name, this.header)].replace(",", ".");
+      return value = columns[jQuery.inArray(name, this.header)].replace(",", ".").replace(/([0-9]+) ([0-9]+)/, "$1$2");
     };
 
     TableData.prototype.find_nearest_value = function(loan_value, old_loan_value, loan_length_num) {
-      var loan_length, plus, up_down, _i, _len, _ref;
+      var loan_length, offset, plus, _i, _len, _ref;
       loan_length = [60, 100][loan_length_num];
-      up_down = (loan_value - old_loan_value) > 0 ? 1 : -1;
-      _ref = [10, 20, 30, 40, 50];
+      offset = 1000;
+      _ref = [-50, -40, -30, -20, -10, 10, 20, 30, 40, 50];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         plus = _ref[_i];
-        if (this.table[loan_length][loan_value + plus * up_down]) {
-          return loan_value + plus * up_down;
+        if (this.table[loan_length][loan_value + plus]) {
+          if (Math.abs(plus) < Math.abs(offset)) {
+            offset = plus;
+          }
         }
       }
-      return 0;
+      if (offset === 1000) {
+        return 0;
+      } else {
+        return loan_value + offset;
+      }
     };
 
     TableData.prototype.get_result_for_value = function(loan_value, old_loan_value, with_service, loan_length_num) {
@@ -301,6 +307,9 @@
     }).observes("loanValue"),
     calculatorValue: null,
     isWithService: 0,
+    isWithServiceBool: (function() {
+      return parseInt(this.get("isWithService"), 10) === 0;
+    }).property('isWithService'),
     recalculate: (function() {
       var calc_value, loan_value, results, table, with_service;
       table = this.get("tableData");
@@ -403,12 +412,30 @@
     resultData: null,
     loanLength: 0,
     isWithService: 0,
+    isWithServiceBool: (function() {
+      return parseInt(this.get("isWithService"), 10) === 0;
+    }).property('isWithService'),
     withServiceTexts: ["Áno", "Nie"],
     loanLengthTexts: ["60", "100"],
+    checkPriceChangeUp: (function() {
+      this.recalculateInit();
+      if (this.tooltip_to_show) {
+        if (this.loan_value === 600 && this.old_loan_value < this.loan_value && this.loan_length === 1) {
+          $("#infotext").html("minimálna výška pôžičky pri splatnosti 100 týždňov je 600 €");
+          $("#infotext").show(0).delay(4000).hide(0);
+          return this.tooltip_to_show = false;
+        } else if (this.loan_value === 1500 && this.old_loan_value > this.loan_value && this.loan_length === 0) {
+          $("#infotext").html("maximálna výška pôžičky pri splatnosti 60 týždňov je 1 500 €");
+          $("#infotext").show(0).delay(4000).hide(0);
+          return this.tooltip_to_show = false;
+        }
+      }
+    }).observes("loanLength"),
     updateLoanValue: (function() {
       var value;
       value = this.tableData.loan_values[this.get("sliderValue")];
-      return this.set("loanValue", value);
+      this.set("loanValue", value);
+      return this.tooltip_to_show = true;
     }).observes("sliderValue"),
     updateInputLoanValue: (function() {
       return this.set("inputLoanValue", "" + this.get("loanValue") + " €");
@@ -457,7 +484,8 @@
       return this.set("resultData", [result]);
     },
     init: function() {
-      return this.tableData = new TableData();
+      this.tableData = new TableData();
+      return this.tooltip_to_show = true;
     },
     actions: {
       doneEdit: function() {

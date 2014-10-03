@@ -41,6 +41,10 @@ table td,
 table th {
   text-align: center;
   font-weight: normal;
+
+}
+table td {
+  white-space: nowrap;
 }
 
 table.second th {
@@ -49,4 +53,15 @@ table.second th {
 }
 table.second td {
 
+}
+
+#ruler {
+  position: relative;
+  padding: 0 0 30px 0;
+  div {
+    white-space: nowrap;
+    position: absolute;
+    text-align: center;
+
+  }
 }

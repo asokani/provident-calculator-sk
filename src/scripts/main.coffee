@@ -252,18 +252,17 @@ SK	1	100	Loan without Komfort service	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	
         @loan_values.push loan_value
     @loan_values = @loan_values.unique()
   get_value: (columns, name) ->
-    value = columns[jQuery.inArray(name, @header)].replace(",", ".")
-  #if value != "-"
-  #  return parseFloat(value)
-  #return value
+    value = columns[jQuery.inArray(name, @header)].replace(",", ".").replace(/([0-9]+) ([0-9]+)/, "$1$2")
   find_nearest_value: (loan_value, old_loan_value, loan_length_num) ->
     loan_length = ([60, 100])[loan_length_num]
-    up_down = if (loan_value - old_loan_value) > 0 then 1 else -1
-    for plus in [10, 20, 30, 40, 50]
-      if @table[loan_length][loan_value + plus*(up_down)]
-        return loan_value + plus*(up_down)
-
-    return 0
+    offset = 1000
+    for plus in [-50, -40, -30, -20, -10, 10, 20, 30, 40, 50]
+      if @table[loan_length][loan_value + plus]
+        offset = plus if Math.abs(plus) < Math.abs(offset)
+    if offset == 1000
+      return 0
+    else
+      return loan_value + offset
 
   get_result_for_value: (loan_value, old_loan_value, with_service, loan_length_num) ->
     type = if with_service then "Loan with Komfort service" else "Loan without Komfort service"
@@ -272,6 +271,7 @@ SK	1	100	Loan without Komfort service	600	2300	€	2300	-	-	-	21,50%	546,73	-	-	
       if @table[loan_length][loan_value]
         return @extend_result(@table[loan_length][loan_value][type])
       else if (nearest_value = @find_nearest_value(loan_value, old_loan_value, loan_length_num)) > 0
+        #console.log "loan_value #{loan_value} old_loan_value #{old_loan_value} nearest_value #{nearest_value}"
         return @extend_result(@table[loan_length][nearest_value][type])
       else
         if loan_value > old_loan_value
@@ -404,6 +404,9 @@ Calc1.Calculator1Controller = Ember.ObjectController.extend
   ).observes("loanValue")
   calculatorValue: null
   isWithService: 0
+  isWithServiceBool: (->
+    parseInt(@get("isWithService"), 10) == 0
+  ).property('isWithService')
   recalculate: ( ->
     table = @get("tableData")
     calc_value = @get("calculatorValue")
@@ -477,35 +480,62 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
   resultData: null
   loanLength: 0
   isWithService: 0
+  isWithServiceBool: (->
+    parseInt(@get("isWithService"), 10) == 0
+  ).property('isWithService')
   withServiceTexts: ["Áno", "Nie"]
   loanLengthTexts: ["60", "100"]
+
+  checkPriceChangeUp: ( ->
+    @recalculateInit()
+    if @tooltip_to_show
+      if @loan_value == 600 and @old_loan_value < @loan_value and @loan_length == 1
+        $("#infotext").html("minimálna výška pôžičky pri splatnosti 100 týždňov je 600 €")
+        $("#infotext").show(0).delay(4000).hide(0);
+
+        @tooltip_to_show = false
+      else if @loan_value == 1500 and @old_loan_value > @loan_value and @loan_length == 0
+        $("#infotext").html("maximálna výška pôžičky pri splatnosti 60 týždňov je 1 500 €")
+        $("#infotext").show(0).delay(4000).hide(0);
+
+        @tooltip_to_show = false
+  ).observes("loanLength")
+
   updateLoanValue: ( ->
     value = @tableData.loan_values[@get("sliderValue")]
     @set("loanValue", value)
+    @tooltip_to_show = true
   ).observes("sliderValue")
+
   updateInputLoanValue: ( ->
     @set("inputLoanValue", "" + @get("loanValue") + " €")
   ).observes("loanValue")
+
   recalculateInit: ->
     @with_service = parseInt(@get("isWithService"), 10) == 0
     @loan_value = parseInt(@get("loanValue"), 10) || 0
     @loan_length = parseInt(@get("loanLength"), 10) || 0
+
   recalculateByLengthBefore: ( ->
     @old_loan_length = parseInt(@get("loanLength"), 10) || 0
   ).observesBefore("loanLength")
+
   recalculateByLength: ( ->
     @recalculateInit()
     result = @tableData.get_result_for_length(@loan_value, @with_service, @loan_length, @old_loan_length)
     @recalculateUpdate(result)
   ).observes('isWithService', "loanLength")
+
   recalculateByValueBefore: ( ->
     @old_loan_value = parseInt(@get("loanValue"), 10) || 0
   ).observesBefore("loanValue")
+
   recalculateByValue: ( ->
     @recalculateInit()
     result = @tableData.get_result_for_value(@loan_value, @old_loan_value, @with_service, @loan_length)
     @recalculateUpdate(result)
   ).observes("loanValue")
+
   recalculateUpdate: (result) ->
     slider_value = @tableData.loan_values.indexOf(result.IssueValue)
     if $("#slider2").slider() != undefined
@@ -521,6 +551,7 @@ Calc2.Calculator2Controller = Ember.ObjectController.extend
     @set("resultData", [result])
   init: ->
     @tableData = new TableData()
+    @tooltip_to_show = true
   actions:
     doneEdit: ->
       new_value = parseInt(@get("inputLoanValue"), 10)
