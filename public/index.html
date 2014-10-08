@@ -12,11 +12,11 @@
     <link rel="shortcut icon" type="image/x-icon" href="/favicon.ico">
 
     <!-- Stylesheets-->
-    <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,300,700,600,400' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,300,700,600,400' rel='stylesheet' type='text/css'>
     <link href='https://code.jquery.com/ui/1.10.4/themes/redmond/jquery-ui.css' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" href="css/master.css">
 </head>
-<body>
+<body style="overflow: hidden;">
 
 <script type="text/x-handlebars" id="components/button-group">
     <div class="btn-group btn-group-justified">
@@ -37,12 +37,12 @@
     <div class="row">
         <div class="col-xs-6">
             <div id="slider1" style="margin: 13px 0 0;"></div>
-            <div id="ruler">
+<div id="ruler">
                 <div style="left:-10px;">|<br>160</div>
-                <div style="left: 122px;">|<br>600</div>
-                <div style="left: 260px;">|<br>1 000</div>
-                <div style="left: 405px;">|<br>1 400</div>
-                <div style="left: 537px;">|<br>2 300</div>
+                <div style="left: 126px;">|<br>600</div>
+                <div style="left: 268px;">|<br>1 000</div>
+                <div style="left: 416px;">|<br>1 400</div>
+                <div style="left: 551px;">|<br>2 300</div>
             </div>
         </div>
         <div class="col-xs-2 col-xs-offset-1">
@@ -69,11 +69,11 @@
                     <li>vie vám vyjsť v ústrety v prípade, že sa oneskoríte so splátkou alebo ak sa dostanete do problémov so splácaním</li>
                 </ul>
                 {{else}}
-                <h4>xxxx</h4>
+                <h4>Pôžička bez služby zabezpečením splátok:</h4>
                 <ul>
-                    <li>aaa</li>
-                    <li>bbb</li>
-                    <li>ccc</li>
+                    <li>splácať budete sám prevodom splátok na bankový účet Providentu</li>
+                    <li>peniaze do 13 kalendárnych dní od podpisu Úverovej zmluvy</li>
+                    <li>bez servisu obchodného zástupcu: výber splátok, usmernení a informácií o pôžičkách a ponukách, možnostiach zliav a akcií, poradenstvo pri insolventnosti</li>
                 </ul>
                 {{/if}}
             </div>
@@ -123,10 +123,10 @@
             <div id="slider2" style="margin: 13px 0 0;"></div>
             <div id="ruler">
                 <div style="left:-10px;">|<br>160</div>
-                <div style="left: 100px;">|<br>600</div>
-                <div style="left: 212px;">|<br>1 000</div>
-                <div style="left: 331px;">|<br>1 400</div>
-                <div style="left: 439px;">|<br>2 300</div>
+                <div style="left: 102px;">|<br>600</div>
+                <div style="left: 218px;">|<br>1 000</div>
+                <div style="left: 340px;">|<br>1 400</div>
+                <div style="left: 452px;">|<br>2 300</div>
             </div>
         </div>
         <div class="col-xs-2 col-xs-offset-1">
@@ -152,11 +152,11 @@
                     <li>vie vám vyjsť v ústrety v prípade, že sa oneskoríte so splátkou alebo ak sa dostanete do problémov so splácaním</li>
                 </ul>
                 {{else}}
-                <h4>xxxx</h4>
+                <h4>Pôžička bez služby zabezpečením splátok:</h4>
                 <ul>
-                    <li>aaa</li>
-                    <li>bbb</li>
-                    <li>ccc</li>
+                    <li>splácať budete sám prevodom splátok na bankový účet Providentu</li>
+                    <li>peniaze do 13 kalendárnych dní od podpisu Úverovej zmluvy</li>
+                    <li>bez servisu obchodného zástupcu: výber splátok, usmernení a informácií o pôžičkách a ponukách, možnostiach zliav a akcií, poradenstvo pri insolventnosti</li>
                 </ul>
                 {{/if}}
             </div>
@@ -205,24 +205,27 @@
 
 </script>
 
-<div class="container" style="padding: 20px 15px 0; min-width:990px;">
-    <h1 class="page-header">Plná kalkulačka</h1>
-    <div id="calculator1"></div>
+<div class="container" style="padding: 0;width: 1170px;margin: -20px 0 0 10px;">
+    <h1 id="calculator1head" class="page-header col-xs-8" style="display: none;padding-left:0;">Online úverová kalkulačka</h1>
+    <div id="calculator1" style="display: none;"></div>
 
-    <h1 class="page-header">Jednoduchá kalkulačka</h1>
-    <div id="calculator2"></div>
+    <h1 id="calculator2head" class="page-header col-xs-8" style="display: none;padding-left:0;">Online úverová kalkulačka</h1>
+    <div id="calculator2" style="display: none;"></div>
 </div>
 
 <!-- Scripts -->
-<!-- htmlbuild:js -->
-<script src="scripts/full/jquery.js"></script>
-<script src="scripts/full/jquery-ui.js"></script>
-<script src="scripts/full/handlebars.js"></script>
-<script src="scripts/full/ember.js"></script>
-<script src="scripts/full/bs-core.max.js"></script>
-<script src="scripts/full/bs-popover.max.js"></script>
-<script src="scripts/full/bs-alert.max.js"></script>
-<script src="scripts/full/main.js"></script>
-<!-- endbuild -->
+<script src="scripts/main.min.js"></script>
+<script>
+    $(function() {
+        if(window.location.href.indexOf("version") > 0) {
+            $("#calculator1").show();
+            $("#calculator1head").show();
+        } else {
+            $("#calculator2").show();
+            $("#calculator2head").show();
+        }
+
+    })
+</script>
 </body>
 </html>
